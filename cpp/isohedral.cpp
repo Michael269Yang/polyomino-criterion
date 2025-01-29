@@ -4,6 +4,7 @@
 #include <cassert>
 #include <cmath>
 #include <iostream>
+#include <map>
 #include <set>
 #include <string>
 #include <unordered_map>
@@ -202,6 +203,31 @@ vector<Factor> admissible_reflect_square_factors(const string& P) {
   return vector<Factor>(factors.begin(), factors.end());
 }
 
+vector<pair<Factor, Factor>> admissible_gapped_reflect_square_factor_pairs(const string& P, int theta) {
+  int n = P.length();
+  vector<pair<Factor, Factor>> factor_pairs;
+  for (int i = 0; i < n; ++i) {
+    for (int j = 0; j < n; ++j) {
+      if (i == j) {
+        continue;
+      }
+      int d = min(j - i + n * (j < i), i - j + n * (i < j));
+      string reflected;
+      for (auto& c: P.substr(j)) {
+        reflected += REFL[theta][c];
+      }
+      for (auto& c: P) {
+        reflected += REFL[theta][c];
+      }
+      int l = longest_match(P.substr(i) + P, reflected, d+1);
+      if (1 <= l && l <= d) {
+        factor_pairs.push_back({{i, (i+l-1+n)%n}, {j, (j+l-1+n)%n}});
+      }
+    }
+  }
+  return factor_pairs;
+}
+
 vector<Factor> has_translation_tiling(const string& P) {
   int n = P.length();
   vector<Factor> factors = admissible_mirror_factors(P);
@@ -355,6 +381,57 @@ vector<Factor> has_type_1_reflection_tiling(const string& P) {
       int of_len = of.second - of.first + 1 + n * (of.second < of.first);
       if (f_len + of_len == n) {
         return {f, of};
+      }
+    }
+  }
+  return {};
+}
+
+vector<Factor> has_type_2_reflection_tiling(const string& P) {
+  int n = P.length();
+  vector<Factor> mirror_factors = admissible_mirror_factors(P);
+  for (int theta = -45; theta <= 90; theta += 45) {
+    map<Factor, vector<pair<Factor, Factor>>> reflect_factor_tips;
+    for (auto& p: admissible_gapped_reflect_square_factor_pairs(P, theta)) {
+      Factor f = p.first;
+      Factor cf = p.second;
+      reflect_factor_tips[make_pair(f.first, cf.second)].push_back({f, cf});
+      reflect_factor_tips[make_pair(cf.first, f.second)].push_back({cf, f});
+    }
+    for (auto& A: mirror_factors) {
+      int A_len = A.second - A.first + 1 + n * (A.second < A.first);
+      Factor rem1 = {(A.second+1)%n, (A.first-1+n)%n};
+      for (auto& p: reflect_factor_tips[rem1]) {
+        Factor f1 = p.first;
+        Factor cf1 = p.second;
+        Factor rem2 = {(f1.second+1)%n, (cf1.first-1+n)%n};
+        int rem2_len = rem2.second - rem2.first + 1 + n * (rem2.second < rem2.first);
+        if (rem2_len == A_len) {
+          return {A, f1, rem2, cf1};
+        }
+        for (auto& p2: reflect_factor_tips[rem2]) {
+          Factor f2 = p2.first;
+          Factor cf2 = p2.second;
+          Factor rem3 = {(f2.second+1)%n, (cf2.first-1+n)%n};
+          int rem3_len = rem3.second - rem3.first + 1 + n * (rem3.second < rem3.first);
+          if (rem3_len == A_len) {
+            return {A, f1, f2, rem3, cf2, cf1};
+          }
+        }
+      }
+    }
+    for (int i = 0; i < n; ++i) {
+      for (auto& p: reflect_factor_tips[{(i+1)%n, i}]) {
+        Factor f1 = p.first;
+        Factor cf1 = p.second;
+        Factor rem2 = {(f1.second+1)%n, (cf1.first-1+n)%n};
+        for (auto& p2: reflect_factor_tips[rem2]) {
+          Factor f2 = p2.first;
+          Factor cf2 = p2.second;
+          if ((f2.second+1)%n == cf2.first) {
+            return {f1, f2, cf2, cf1};
+          }
+        }
       }
     }
   }
@@ -531,6 +608,28 @@ void test__has_type_1_reflection_tiling() {
   assert(!has_type_1_reflection_tiling("NNWNENNNENWNEEEENESEEESESESESWSWSWWWWNWSWWWW").empty());
 }
 
+void test__has_type_2_reflection_tiling() {
+  for (int i = 1; i <= 5; ++i) {
+    assert(!has_type_2_reflection_tiling(create_square(i)).empty());
+  }
+
+  for (int i = 1; i <= 5; ++i) {
+    assert(!has_type_2_reflection_tiling(create_rectangle(2, i)).empty());
+  }
+
+  for (int i = 4; i <= 7; ++i) {
+    assert(!has_type_2_reflection_tiling(create_rectangle(3, i)).empty());
+  }
+
+  // tetris pieces (non-empty A, A hat)
+  assert(!has_type_2_reflection_tiling("NNENWNNNEENNEEEENEESESSWWSSSESWSSWNWWSWWWW").empty());
+  assert(has_type_2_reflection_tiling("NNENWNNNEENNEEEENEESESSWWSSSWSESSWNWWSWWWW").empty());
+
+  // tetris pieces (empty A, A hat)
+  assert(!has_type_2_reflection_tiling("WNWNNNEESSEEWSWS").empty());
+  assert(has_type_2_reflection_tiling("WNWNNNEESSEEWWSS").empty());
+}
+
 int main() {
   // Test longest longest_match
   string S1 = "abcdef";
@@ -552,5 +651,6 @@ int main() {
   test__has_half_turn_tiling();
   test__has_quarter_turn_tiling();
   test__has_type_1_reflection_tiling();
+  test__has_type_2_reflection_tiling();
 
  }
