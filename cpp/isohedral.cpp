@@ -438,6 +438,54 @@ vector<Factor> has_type_2_reflection_tiling(const string& P) {
   return {};
 }
 
+vector<Factor> has_type_1_half_turn_reflection_tiling(const string& P) {
+  int n = P.length();
+  vector<pair<Factor, Factor>> mirror_factor_pairs = admissible_gapped_mirror_factor_pairs(P);
+  vector<Factor> palin_factors = admissible_rotadrome_factors(P, 180);
+  vector<Factor> reflect_square_factors = admissible_reflect_square_factors(P);
+
+  vector<vector<Factor>> palindrome_factor_starts(n);
+  vector<vector<Factor>> palindrome_factor_ends(n);
+  for (auto& f: palin_factors) {
+    palindrome_factor_starts[f.first].push_back(f);
+    palindrome_factor_ends[f.second].push_back(f);
+  }
+  vector<vector<Factor>> reflect_square_starts(n);
+  for (auto& f: reflect_square_factors) {
+    reflect_square_starts[f.first].push_back(f);
+  }
+
+  // Non-empty mirrors 
+  for (auto& p: mirror_factor_pairs) {
+    Factor A = p.first;
+    Factor A_hat = p.second;
+    Factor dpi1 = {(A.second+1)%n, (A_hat.first-1+n)%n};
+    Factor dpi2 = {(A_hat.second+1)%n, (A.first-1+n)%n};
+    vector<Factor> dp1 = is_double_palindrome(dpi1, palindrome_factor_starts, palindrome_factor_ends, n);
+    // Other variant (dpi2 is the double palindrome) checked later by symmetry of A, A_hat
+    vector<Factor>& starts = reflect_square_starts[dpi2.first];
+    if (!dp1.empty() && (find(starts.begin(), starts.end(), dpi2) != starts.end())) {
+      vector<Factor> result;
+      result.push_back(A);
+      result.insert(result.end(), dp1.begin(), dp1.end());
+      result.push_back(A_hat);
+      result.push_back(dpi2);
+      return result;
+    }
+  }
+  
+  // Empty mirrors
+  for (auto& dp1: reflect_square_factors) {
+    vector<Factor> dp2 = is_double_palindrome({(dp1.second+1)%n, (dp1.first-1+n)%n}, palindrome_factor_starts, palindrome_factor_ends, n);
+    if (!dp2.empty()) {
+      vector<Factor> result = {dp1};
+      result.insert(result.end(), dp2.begin(), dp2.end());
+      return result;
+    }
+  }
+  return {};
+}
+
 /****************************************************
 * Code for tests 
 * This section contains:
@@ -630,6 +678,23 @@ void test__has_type_2_reflection_tiling() {
   assert(has_type_2_reflection_tiling("WNWNNNEESSEEWWSS").empty());
 }
 
+void test__has_type_1_half_turn_reflection_tiling() {
+  for (int i = 1; i <= 5; ++i) {
+    assert(!has_type_1_half_turn_reflection_tiling(create_square(i)).empty());
+  }
+
+  // tetris pieces (non-empty A, A hat)
+  assert(has_type_1_half_turn_reflection_tiling("NNWNENNNENWNEEEENESEEESSSSSESWSSWWWNWSWWWW").empty());
+  assert(!has_type_1_half_turn_reflection_tiling("NNNWNENNNNENWNEEEENESEEESSSSSESWWSESWWWNWSWWWW").empty());
+
+  // tetris pieces (empty A, A hat)
+  assert(!has_type_1_half_turn_reflection_tiling("NNNNNNESESESWSWWSW").empty());
+  assert(!has_type_1_half_turn_reflection_tiling("NNWNEENWNNESESESWSWWSW").empty());
+  assert(has_type_1_half_turn_reflection_tiling("NNWNENNNESESESWSWWSW").empty());
+  assert(has_type_1_half_turn_reflection_tiling("NNWNEENWNNESSEESWSWWSW").empty());
+
+}
+
 int main() {
   // Test longest longest_match
   string S1 = "abcdef";
@@ -652,5 +717,6 @@ int main() {
   test__has_quarter_turn_tiling();
   test__has_type_1_reflection_tiling();
   test__has_type_2_reflection_tiling();
+  test__has_type_1_half_turn_reflection_tiling();
 
  }
