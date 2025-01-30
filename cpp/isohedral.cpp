@@ -207,10 +207,7 @@ vector<pair<Factor, Factor>> admissible_gapped_reflect_square_factor_pairs(const
   int n = P.length();
   vector<pair<Factor, Factor>> factor_pairs;
   for (int i = 0; i < n; ++i) {
-    for (int j = 0; j < n; ++j) {
-      if (i == j) {
-        continue;
-      }
+    for (int j = i + 1; j < n; ++j) {
       int d = min(j - i + n * (j < i), i - j + n * (i < j));
       string reflected;
       for (auto& c: P.substr(j)) {
@@ -486,6 +483,110 @@ vector<Factor> has_type_1_half_turn_reflection_tiling(const string& P) {
   return {};
 }
 
+vector<Factor> has_type_2_half_turn_reflection_tiling(const string& P) {
+  int n = P.length();
+  vector<Factor> palin_factors = admissible_rotadrome_factors(P, 180);
+  map<int, vector<pair<Factor, Factor>>> reflect_factor_pairs;
+  for (int theta = -45; theta <= 90; theta += 45) {
+    reflect_factor_pairs[theta] = admissible_gapped_reflect_square_factor_pairs(P, theta);
+    // Double up, both for tips and for f1, cf1 iterating since B, refl(B) are not symmetric
+    vector<pair<Factor, Factor>> reversed_pairs;
+    for (auto& fp: reflect_factor_pairs[theta]) {
+      reversed_pairs.push_back({fp.second, fp.first});
+    }
+    reflect_factor_pairs[theta].insert(reflect_factor_pairs[theta].end(), reversed_pairs.begin(), reversed_pairs.end());
+  }
+
+  /*cout << "Printing reflect pairs\n";
+  for (auto& p: reflect_factor_pairs[-45]) {
+    cout << "factor 1: ";
+    printFactor(p.first);
+    cout << "factor 2: ";
+    printFactor(p.second);
+    cout << "\n";
+  }
+  cout << "Length: " << reflect_factor_pairs[-45].size() << "\n";*/
+
+  vector<pair<int, int>> theta_pairs = {{0, 90}, {90, 0}, {-45, 45}, {45, -45}};
+  for (auto& p: theta_pairs) {
+    int theta1 = p.first;
+    int theta2 = p.second;
+    map<Factor, vector<pair<Factor, Factor>>> reflect_factor_tips;
+    for (auto& pf: reflect_factor_pairs[theta2]) {
+      Factor f = pf.first;
+      Factor cf = pf.second;
+      reflect_factor_tips[{f.first, cf.second}].push_back(make_pair(f, cf));
+    }
+    // Non-empty B, refl(B)
+    for (auto& pf: reflect_factor_pairs[theta1]) {
+      Factor f1 = pf.first;
+      Factor cf1 = pf.second;
+      Factor dpi1 = {(f1.second+1)%n, (cf1.first-1+n)%n};
+      Factor dpi2 = {(cf1.second+1)%n, (f1.first-1+n)%n};
+      // Empty D, refl(D)
+      if ((find(palin_factors.begin(), palin_factors.end(), dpi1) != palin_factors.end()) && (find(palin_factors.begin(), palin_factors.end(), dpi2) != palin_factors.end())) {
+        return {f1, dpi1, cf1, dpi2};
+      }
+      // Non-empty D, refl(D)
+      for (auto & pr: reflect_factor_tips[{dpi1.first, dpi2.second}]) {
+        Factor f2 = pr.first;
+        Factor cf2 = pr.second;
+        vector<Factor> rem1f;
+        if ((f2.second+1)%n == cf1.first) { // |A| = 0
+          rem1f = {f2};
+        }
+        Factor rem1i = {(f2.second+1)%n, dpi1.second};
+
+        if (rem1f.empty() && (find(palin_factors.begin(), palin_factors.end(), rem1i) != palin_factors.end())) {
+          rem1f =  {f2, rem1i};
+        }
+
+        vector<Factor> rem2f;
+        if (cf1.second == (cf2.first-1+n)%n) { // |C| = 0
+          rem2f = {cf2};
+        }
+        Factor rem2i = {dpi2.first, (cf2.first-1+n)%n};
+        if (rem2f.empty() && (find(palin_factors.begin(), palin_factors.end(), rem2i) != palin_factors.end())) {
+          rem2f = {rem2i, cf2};
+        }
+
+        if (!rem1f.empty() && !rem2f.empty()) {
+          vector<Factor> result = {f1};
+          result.insert(result.end(), rem1f.begin(), rem1f.end());
+          result.push_back(cf1);
+          result.insert(result.end(), rem2f.begin(), rem2f.end());
+          return result;
+        }
+      }
+      // Empty B, refl(B): D refl(D) A C with A, C, palindromes
+      for (int i = 0; i < n; ++i) {
+        for (auto& pr: reflect_factor_tips[{(i+1)%n, i}]){
+          Factor f2 = pr.first;
+          Factor cf2 = pr.second;
+          if ((f2.second+1)%n == cf2.first && (cf2.second+1)%n == f2.first) {
+            return {f2, cf2};
+          }
+          for (auto& p1: palin_factors) {
+            if (p1.first != (cf2.second+1)%n) {
+              continue;;
+            }
+            if ((p1.second+1)%n == f2.first) {
+              return {f2, cf2, p1};
+            }
+            for (auto& p2: palin_factors) {
+              if (p2.first != (p1.second+1)%n || (p2.second+1)%n != f2.first) {
+                continue;
+              }
+              return {f2, cf2, p1, p2};
+            }
+          }
+        }
+      }
+    }
+  }
+  return {};
+}
+
 /****************************************************
 * Code for tests 
 * This section contains:
@@ -558,6 +659,28 @@ void test__admissible_reflect_square_factors() {
   factorSet = set<Factor>(factors.begin(), factors.end());
   wantSet = {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {4, 5}, {5, 6}, {6, 7}, {7, 0}, {0, 3}, {2, 5}, {4, 7}, {6, 1}};
   assert(factorSet == wantSet);
+}
+
+void test__admissible_gapped_reflect_square_factor_pairs() {
+  vector<pair<Factor, Factor>> factors = admissible_gapped_reflect_square_factor_pairs("NESW", -45);
+  set<pair<Factor, Factor>> factorSet(factors.begin(), factors.end());
+  set<pair<Factor, Factor>> wantSet = {{{0,0}, {3,3}}, {{1,1}, {2,2}}};
+  assert(wantSet == factorSet);
+
+  factors = admissible_gapped_reflect_square_factor_pairs("NESW", 45);
+  factorSet = set<pair<Factor, Factor>>(factors.begin(), factors.end());
+  wantSet = {{{0, 0}, {1,1}}, {{2,2}, {3,3}}};
+  assert(wantSet == factorSet);
+
+  factors = admissible_gapped_reflect_square_factor_pairs("NESW", 0);
+  factorSet = set<pair<Factor, Factor>>(factors.begin(), factors.end());
+  wantSet = {{{0, 0}, {2,2}}};
+  assert(wantSet == factorSet);
+
+  factors = admissible_gapped_reflect_square_factor_pairs("NESW", 90);
+  factorSet = set<pair<Factor, Factor>>(factors.begin(), factors.end());
+  wantSet = {{{1, 1}, {3,3}}};
+  assert(wantSet == factorSet);
 }
 
 void test__has_translation_tiling() {
@@ -692,7 +815,23 @@ void test__has_type_1_half_turn_reflection_tiling() {
   assert(!has_type_1_half_turn_reflection_tiling("NNWNEENWNNESESESWSWWSW").empty());
   assert(has_type_1_half_turn_reflection_tiling("NNWNENNNESESESWSWWSW").empty());
   assert(has_type_1_half_turn_reflection_tiling("NNWNEENWNNESSEESWSWWSW").empty());
+}
 
+void test__has_type_2_half_turn_reflection_tiling() {
+  for (int i = 1; i <= 5; ++i) {
+    assert(!has_type_2_half_turn_reflection_tiling(create_square(i)).empty());
+  }
+  // Tetris pieces (non-empty D, non-empty B, refl(B), empty A, C)
+  assert(!has_type_2_half_turn_reflection_tiling("NENWNENESESESWSWNWSW").empty());
+  assert(has_type_2_half_turn_reflection_tiling("NENWNENESESWSESWNWSW").empty());
+
+  // Tetris pieces (non-empty D, non-empty B, refl(B), non-empty A, C)
+  assert(!has_type_2_half_turn_reflection_tiling("NENWWNENNENWNENESESESWSSSSSWNWSW").empty());
+  assert(has_type_2_half_turn_reflection_tiling("NENWWNENNENWNENESESESWSSESWSSWNWSW").empty());
+
+  // Tetris pieces (empty D, non-empty B, refl(B) non-empty A, C)
+  assert(!has_type_2_half_turn_reflection_tiling("NENWWNENENESESSSSWNWSW").empty());
+  assert(has_type_2_half_turn_reflection_tiling("NENWWNENENESESSESWSWNWSW").empty());
 }
 
 int main() {
@@ -705,6 +844,7 @@ int main() {
 
   test__admissible_rotadrome_factors();
   test__admissible_reflect_square_factors();
+  test__admissible_gapped_reflect_square_factor_pairs();
 
   // Test admissible_mirror_factors
   /*string boundary = "EESSENESSESWWWSWSWNNWWNEEENWNN";
@@ -718,5 +858,6 @@ int main() {
   test__has_type_1_reflection_tiling();
   test__has_type_2_reflection_tiling();
   test__has_type_1_half_turn_reflection_tiling();
+  test__has_type_2_half_turn_reflection_tiling();
 
  }
