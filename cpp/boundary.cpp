@@ -684,8 +684,6 @@ edgeset<coord> getUniqueTileEdges(const Shape<OminoGrid<coord>>& shape) {
 }
 
 int main() {
-  cout << "Hello World\n";
-
   Shape<OminoGrid<int>> shape;
   shape.add(0, 0);
   auto edges = getUniqueTileEdges(shape);
