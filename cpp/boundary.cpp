@@ -695,4 +695,17 @@ int main() {
   else for (auto& e: edges ) {
     cout << "(" << e.first.getX() << ", " << e.first.getY() << ") to (" << e.second.getX() << ", " << e.second.getY() << ")\n";
   }
+
+  shape = Shape<OminoGrid<int>>();
+  shape.add(0, 0);
+  shape.add(1, 0);
+  shape.add(2, 0);
+  shape.add(2, -1);
+  shape.add(3, 0);
+  shape.add(2, 1);
+  edges = getUniqueTileEdges(shape);
+  cout << "New edges\n";
+  for (auto& e: edges) {
+    cout << e.first << "->" << e.second << "\n";
+  }
 }
