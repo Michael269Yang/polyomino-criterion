@@ -12,6 +12,8 @@
 #include <utility>
 #include <vector>
 
+// TODO: Put this stuff in a namespace.
+
 using Factor = std::pair<int, int>;
 
 std::vector<Factor> is_double_palindrome(const Factor& F, const std::vector<std::vector<Factor>>& palindrome_factor_starts, const std::vector<std::vector<Factor>>& palindrome_factor_ends, int n);
@@ -44,5 +46,5 @@ std::vector<Factor> has_type_1_half_turn_reflection_tiling(const std::string& P)
 
 std::vector<Factor> has_type_2_half_turn_reflection_tiling(const std::string& P);
 
-#endif
+#endif // ISOHEDRAL_H
 

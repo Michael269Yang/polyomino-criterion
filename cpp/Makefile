@@ -6,7 +6,7 @@ OBJECTS = $(SOURCES:.cc=.o)
 
 TARGETS = boundary isohedral
 
-BOUNDARY_SOURCES = boundary.cpp
+BOUNDARY_SOURCES = boundary_test.cpp
 BOUNDARY_OBJECTS = $(BOUNDARY_SOURCES:.cpp=.o)
 BOUNDARY_DEPENDS = $(BOUNDARY_OBJECTS:.o=.d)
 
@@ -14,7 +14,7 @@ ISOHEDRAL_SOURCES = isohedral.cpp isohedral_test.cpp
 ISOHEDRAL_OBJECTS = $(ISOHEDRAL_SOURCES:.cpp=.o)
 ISOHEDRAL_DEPENDS = $(ISOHEDRAL_OBJECTS:.o=.d)
 
-SOURCES = boundary.cpp isohedral.cpp isohedral_test.cpp
+SOURCES = boundary_test.cpp isohedral.cpp isohedral_test.cpp
 OBJECTS = $(SOURCES:.cpp=.o)
 DEPENDS = $(OBJECTS:.o=.d)
 
