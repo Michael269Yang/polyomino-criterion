@@ -46,5 +46,7 @@ std::vector<Factor> has_type_1_half_turn_reflection_tiling(const std::string& P)
 
 std::vector<Factor> has_type_2_half_turn_reflection_tiling(const std::string& P);
 
+bool has_isohedral_tiling(const std::string& P);
+
 #endif // ISOHEDRAL_H
 

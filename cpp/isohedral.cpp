@@ -584,3 +584,13 @@ vector<Factor> has_type_2_half_turn_reflection_tiling(const string& P) {
   return {};
 }
 
+bool has_isohedral_tiling(const std::string &P) {
+  return !has_half_turn_tiling(P).empty() || 
+        !has_translation_tiling(P).empty() ||
+        !has_quarter_turn_tiling(P).empty() || 
+        !has_type_1_reflection_tiling(P).empty() ||
+        !has_type_2_reflection_tiling(P).empty() ||
+        !has_type_1_half_turn_reflection_tiling(P).empty() ||
+        !has_type_2_half_turn_reflection_tiling(P).empty();
+}
+
