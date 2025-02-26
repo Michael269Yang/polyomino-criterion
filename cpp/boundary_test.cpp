@@ -1,4 +1,5 @@
 #include "boundary.h"
+#include "ominogrid.h"
 
 #include <iostream>
 
@@ -22,9 +23,10 @@ int main() {
   shape.add(2, -1);
   shape.add(3, 0);
   shape.add(2, 1);
-  edges = getUniqueTileEdges(shape);
-  cout << "New edges\n";
-  for (auto& e: edges) {
-    cout << e.first << "->" << e.second << "\n";
-  }
+  cout << getBoundaryWord(shape) << "\n";
+
+  cout << "Testing for square\n";
+  shape = Shape<OminoGrid<int>>();
+  shape.add(0, 0);
+  cout << getBoundaryWord(shape) << "\n";
 }

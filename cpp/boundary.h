@@ -163,38 +163,38 @@ std::string getBoundaryWord(const Shape<OminoGrid<coord>>& shape) {
     }
   }
 
-  // Traverse in counter-clockwise direction. 
-  // Since we're at bottom left point, next point should be to right. 
+  // Traverse in clockwise direction. 
+  // Since we're at bottom left point, next point should be up. 
   // Start at next point and keep traversing boundary until reach start aka bottomLeft.
-  point_t cur(bottomLeft.getX() + 1, bottomLeft.getY());
-  int8_t prevDir = E;
-  ret += 'E';
+  point_t cur(bottomLeft.getX(), bottomLeft.getY() + 1);
+  int8_t prevDir = N;
+  ret += 'N';
   while (cur != bottomLeft) {
-    // If we're currently going straight, always prioritize going right, then 
-    // continuing straight, then going left.
+    // If we're currently going straight, always prioritize going left, then 
+    // continuing straight, then going right.
     int8_t rightDir = (prevDir + 3) % 4;
     int8_t leftDir = (prevDir + 1) % 4;
 
     int8_t prevDirX = (prevDir == E || prevDir == W) ? (prevDir == E ? 1 : -1) : 0;
     int8_t prevDirY = (prevDir == N || prevDir == S) ? (prevDir == N ? 1 : -1) : 0;
     point_t next;
-    if (vertexToEdges[cur].test(rightDir)) {
-      // Turn right. 
-      // 270 degree rotation of direction (x, y) is (y, -x).
-      prevDir = rightDir;
-      next = cur + point_t(prevDirY, -prevDirX);
-      ret += dirs[rightDir];
+    if (vertexToEdges[cur].test(leftDir)) {
+      // Turn left.
+      // 90 degree rotation of direction (x, y) is (-y, x).
+      prevDir = leftDir;
+      next = cur + point_t(-prevDirY, prevDirX);
+      ret += dirs[leftDir];
     } else if (vertexToEdges[cur].test(prevDir)) {
       // Go straight. 
       // 0 degree rotation of direction (x, y) is (x, y).
       next = cur + point_t(prevDirX, prevDirY);
       ret += dirs[prevDir];
     } else {
-      // Turn left.
-      // 90 degree rotation of direction (x, y) is (-y, x).
-      prevDir = leftDir;
-      next = cur + point_t(-prevDirY, prevDirX);
-      ret += dirs[leftDir];
+      // Turn right. 
+      // 270 degree rotation of direction (x, y) is (y, -x).
+      prevDir = rightDir;
+      next = cur + point_t(prevDirY, -prevDirX);
+      ret += dirs[rightDir];
     }
 
     cur = next;

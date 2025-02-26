@@ -42,6 +42,13 @@ int main(int argc, char **argv) {
     }
 
     int num_isohedral = 0;
+    int num_trans = 0;
+    int num_half_turn = 0;
+    int num_quart_turn = 0;
+    int num_refl_1 = 0;
+    int num_refl_2 = 0;
+    int num_turn_refl_1 = 0;
+    int num_turn_refl_2 = 0;
     std::string line;
     while (std::getline(inputFile, line)) {
       std::istringstream iss(line);
@@ -64,12 +71,53 @@ int main(int argc, char **argv) {
         shape.add(nums[i], nums[i+1]);
       }
 
+      bool is_iso = false;
       std::string boundary = getBoundaryWord(shape);
-      if (has_isohedral_tiling(boundary)) {
+      if (!has_translation_tiling(boundary).empty()) {
+        ++num_trans;
+        is_iso = true;
+      }
+      if (!has_half_turn_tiling(boundary).empty()) {
+        ++num_half_turn;
+        is_iso = true;
+      }
+      if (!has_quarter_turn_tiling(boundary).empty()) {
+        ++num_quart_turn;
+        is_iso = true;
+      }
+      if (!has_type_1_reflection_tiling(boundary).empty()) {
+        ++num_refl_1;
+        is_iso = true;
+      }
+      if (!has_type_2_reflection_tiling(boundary).empty()) {
+        ++num_refl_2;
+        is_iso = true;
+      }
+      if (!has_type_1_half_turn_reflection_tiling(boundary).empty()) {
+        ++num_turn_refl_1;
+        is_iso = true;
+      }
+      if (!has_type_2_half_turn_reflection_tiling(boundary).empty()) {
+        ++num_turn_refl_2;
+        is_iso = true;
+      }
+
+      if (is_iso) {
         ++num_isohedral;
       }
+
+      /*if (has_isohedral_tiling(boundary)) {
+        ++num_isohedral;
+      }*/
     }
-    std::cout << "Num isohedral: " << num_isohedral << "\n";
+    cout << "Num isohedral: " << num_isohedral << "\n";
+    cout << "Num trans: " << num_trans << "\n";
+    cout << "Num half turn: " << num_half_turn << "\n";
+    cout << "Num quarter turn: " << num_quart_turn << "\n";
+    cout << "Num refl 1: " << num_refl_1 << "\n";
+    cout << "Num refl 2: " << num_refl_2 << "\n";
+    cout << "Num turn refl 1: " << num_turn_refl_1 << "\n";
+    cout << "Num turn refl 2: " << num_turn_refl_2 << "\n";
   }
 }
 
