@@ -16,7 +16,7 @@ int main(int argc, char **argv) {
     cout << "Usage: ./isohedral_e2e [path to gen program] [size to check up to (if this is N we check sizes 1,2,...,N)]";
     return -1;
   }
-
+  
   std::string genPath = argv[1];
   cout << genPath << "\n";
 
@@ -50,6 +50,7 @@ int main(int argc, char **argv) {
     int num_turn_refl_1 = 0;
     int num_turn_refl_2 = 0;
     std::string line;
+    std::vector<std::string> boundary_words;
     while (std::getline(inputFile, line)) {
       std::istringstream iss(line);
       std::string temp;
@@ -71,8 +72,14 @@ int main(int argc, char **argv) {
         shape.add(nums[i], nums[i+1]);
       }
 
-      bool is_iso = false;
       std::string boundary = getBoundaryWord(shape);
+      boundary_words.push_back(boundary);
+    }
+
+    cout << "Done extracting boundary words\n";
+    cout << "Num polyominoes: " << boundary_words.size() << "\n";
+    for (const auto& boundary: boundary_words) {
+      bool is_iso = false;
       if (!has_translation_tiling(boundary).empty()) {
         ++num_trans;
         is_iso = true;
@@ -105,10 +112,6 @@ int main(int argc, char **argv) {
       if (is_iso) {
         ++num_isohedral;
       }
-
-      /*if (has_isohedral_tiling(boundary)) {
-        ++num_isohedral;
-      }*/
     }
     cout << "Num isohedral: " << num_isohedral << "\n";
     cout << "Num trans: " << num_trans << "\n";
@@ -117,7 +120,7 @@ int main(int argc, char **argv) {
     cout << "Num refl 1: " << num_refl_1 << "\n";
     cout << "Num refl 2: " << num_refl_2 << "\n";
     cout << "Num turn refl 1: " << num_turn_refl_1 << "\n";
-    cout << "Num turn refl 2: " << num_turn_refl_2 << "\n";
+    cout << "Num turn refl 2: " << num_turn_refl_2 << "\n\n";
   }
 }
 

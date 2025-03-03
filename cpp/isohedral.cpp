@@ -73,7 +73,7 @@ bool is_reflect_square_factor(const string& P, int i, int j, int theta) {
   /*cout << "i is: " << i << " l is: " << l << " sum is: " << i + l << "\n";
   cout << "Substring is: " << P.substr(i + l) << "\n";*/
 
-  for (auto& c: P.substr(min(i + l, n))) {
+  for (auto& c: P.substr((i + l) % n)) {
     reflected += REFL[theta][c];
   }
   for (auto& c: P) {
@@ -141,7 +141,7 @@ vector<pair<Factor, Factor>> admissible_gapped_mirror_factor_pairs(const string&
   for (int i = 0; i < n; ++i) {
     for (int j = i + 1; j < n; ++j) {
       if (P[i] == COMPLEMENT[P[j]]) {
-        int l = longest_match(inv_comp(P + P.substr(0, i)), P.substr((j + 1) % n), (i + n - j - 1)/2);
+        int l = longest_match(inv_comp(P + P.substr(0, i)), P.substr((j + 1) % n) + P, (i + n - j - 1)/2);
         int r = longest_match(P.substr((i+1)%n) + P, inv_comp(P + P.substr(0, j)), (j-i-1)/2);
         if (l == r) {
           factor_pairs.push_back({make_pair((i-l+n)%n, (i+r)%n), make_pair((j-l+n)%n, (j+r)%n)});
@@ -434,7 +434,15 @@ vector<Factor> has_type_2_reflection_tiling(const string& P) {
 
 vector<Factor> has_type_1_half_turn_reflection_tiling(const string& P) {
   int n = P.length();
-  vector<pair<Factor, Factor>> mirror_factor_pairs = admissible_gapped_mirror_factor_pairs(P);
+  vector<pair<Factor, Factor>> partial_mirror_factor_pairs = admissible_gapped_mirror_factor_pairs(P);
+  // Factorization A B C A_hat D f_theta(D) is not symmetric so we need both orderings of each pair.
+  vector<pair<Factor, Factor>> mirror_factor_pairs;
+  mirror_factor_pairs.reserve(2 * partial_mirror_factor_pairs.size());
+  for (auto& p: partial_mirror_factor_pairs) {
+    mirror_factor_pairs.push_back(p);
+    mirror_factor_pairs.push_back({p.second, p.first});
+  }
+  
   vector<Factor> palin_factors = admissible_rotadrome_factors(P, 180);
   vector<Factor> reflect_square_factors = admissible_reflect_square_factors(P);
 

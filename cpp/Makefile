@@ -1,6 +1,7 @@
 
 CXX = g++
-CXXFLAGS = -Wall -std=c++17
+OPT = -O3 -DNDEBUG
+CXXFLAGS = -Wall -std=c++17 $(OPT)
 
 OBJECTS = $(SOURCES:.cc=.o) 
 

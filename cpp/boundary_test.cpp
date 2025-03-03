@@ -29,4 +29,13 @@ int main() {
   shape = Shape<OminoGrid<int>>();
   shape.add(0, 0);
   cout << getBoundaryWord(shape) << "\n";
+
+  cout << "Testing 5-omino\n";
+  shape = Shape<OminoGrid<int>>();
+  shape.add(0, 0);
+  shape.add(0, 1);
+  shape.add(1, 1);
+  shape.add(2, 1);
+  shape.add(2, 0);
+  cout << "Boundary: " << getBoundaryWord(shape) << "\n";
 }
