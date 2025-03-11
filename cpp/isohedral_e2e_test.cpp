@@ -2,18 +2,33 @@
 #include "isohedral.h"
 #include "ominogrid.h"
 
+#include <chrono>
+#include <cmath>
+#include <ctime>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <numeric>
 #include <sstream>
 #include <string>
+#include <thread>
 
 using namespace std;
 
+int countIsohedral(const vector<string>& boundaryWords, size_t start, size_t end) {
+  int num_isohedral = 0;
+  for (size_t i = start; i < end; ++i) {
+    if (has_isohedral_tiling(boundaryWords[i])) {
+      ++num_isohedral;
+    }
+  }
+  return num_isohedral;
+}
+
 int main(int argc, char **argv) {
   cout << "argc: " << argc << "\n";
-  if (argc != 3) {
-    cout << "Usage: ./isohedral_e2e [path to gen program] [size to check up to (if this is N we check sizes 1,2,...,N)]";
+  if (argc != 3 && argc != 4) {
+    cout << "Usage: ./isohedral_e2e [path to gen program] [size to check up to (if this is N we check sizes 1,2,...,N)] [grid type. choices are: omino, iamond]";
     return -1;
   }
   
@@ -23,10 +38,12 @@ int main(int argc, char **argv) {
   int N = stoi(argv[2]);
   cout << N << "\n";
 
+  std::string gridType = (argc == 4) ? argv[3] : "omino";
+
   // Generate the polyominos
   for (int i = 1; i <= N; ++i) {
     std::string fileName = to_string(i) + ".txt";
-    std::string command = genPath + " -omino -size " + to_string(i) + " -free -o " + fileName;
+    std::string command = genPath + "-" + gridType + " -size " + to_string(i) + " -free -o " + fileName;
     system(command.c_str());
   }
 
@@ -78,11 +95,33 @@ int main(int argc, char **argv) {
 
     cout << "Done extracting boundary words\n";
     cout << "Num polyominoes: " << boundary_words.size() << "\n";
+    /*size_t num_threads = min<size_t>(boundary_words.size(), thread::hardware_concurrency());
+    size_t chunk_size = boundary_words.size() / num_threads;
+
+    std::vector<thread> threads;
+    std::vector<int> partial_sums(num_threads);
+    for (size_t i = 0; i < num_threads; ++i) {
+      size_t start = i * chunk_size;
+      size_t end = (i == num_threads - 1) ? boundary_words.size() : (i + 1) * chunk_size;
+      cout << "start: " << start << " end: " << end << "\n";
+
+      threads.emplace_back([&boundary_words, &partial_sums, &start, &end, &i](){
+        partial_sums[i] = countIsohedral(boundary_words, start, end);
+      });
+    }
+    for (auto& th: threads) {
+      th.join();
+    }
+    num_isohedral = std::accumulate(partial_sums.begin(), partial_sums.end(), 0);*/
+
     for (const auto& boundary: boundary_words) {
       bool is_iso = false;
       if (!has_translation_tiling(boundary).empty()) {
         ++num_trans;
         is_iso = true;
+        if (has_half_turn_tiling(boundary).empty()) {
+          cout << "Found trans but not 180: " << boundary << "\n";
+        }
       }
       if (!has_half_turn_tiling(boundary).empty()) {
         ++num_half_turn;
