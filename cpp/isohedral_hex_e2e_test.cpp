@@ -1,29 +1,16 @@
 #include "boundary.h"
+#include "hexgrid.h"
 #include "isohedral.h"
 #include "ominogrid.h"
 
-#include <chrono>
-#include <cmath>
 #include <ctime>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
-#include <numeric>
 #include <sstream>
 #include <string>
-#include <thread>
 
 using namespace std;
-
-/*int countIsohedral(const vector<string>& boundaryWords, size_t start, size_t end) {
-  int num_isohedral = 0;
-  for (size_t i = start; i < end; ++i) {
-    if (has_isohedral_tiling(boundaryWords[i])) {
-      ++num_isohedral;
-    }
-  }
-  return num_isohedral;
-}*/
 
 int main(int argc, char **argv) {
   cout << "argc: " << argc << "\n";
@@ -38,7 +25,7 @@ int main(int argc, char **argv) {
   int N = stoi(argv[2]);
   cout << N << "\n";
 
-  std::string gridType = (argc == 4) ? argv[3] : "omino";
+  std::string gridType = (argc == 4) ? argv[3] : "hex";
 
   IsohedralChecker checker;
   if (gridType == "hex") {
@@ -98,10 +85,6 @@ int main(int argc, char **argv) {
     int num_trans = 0;
     int num_half_turn = 0;
     int num_quart_turn = 0;
-    int num_refl_1 = 0;
-    int num_refl_2 = 0;
-    int num_turn_refl_1 = 0;
-    int num_turn_refl_2 = 0;
     std::string line;
     std::vector<std::string> boundary_words;
     while (std::getline(inputFile, line)) {
@@ -120,7 +103,7 @@ int main(int argc, char **argv) {
         continue;
       }
 
-      Shape<OminoGrid<int>> shape = Shape<OminoGrid<int>>();
+      Shape<HexGrid<int>> shape = Shape<HexGrid<int>>();
       for (int i = 0; i < nums.size(); i += 2) {
         shape.add(nums[i], nums[i+1]);
       }
@@ -131,24 +114,6 @@ int main(int argc, char **argv) {
 
     cout << "Done extracting boundary words\n";
     cout << "Num polyominoes: " << boundary_words.size() << "\n";
-    /*size_t num_threads = min<size_t>(boundary_words.size(), thread::hardware_concurrency());
-    size_t chunk_size = boundary_words.size() / num_threads;
-
-    std::vector<thread> threads;
-    std::vector<int> partial_sums(num_threads);
-    for (size_t i = 0; i < num_threads; ++i) {
-      size_t start = i * chunk_size;
-      size_t end = (i == num_threads - 1) ? boundary_words.size() : (i + 1) * chunk_size;
-      cout << "start: " << start << " end: " << end << "\n";
-
-      threads.emplace_back([&boundary_words, &partial_sums, &start, &end, &i](){
-        partial_sums[i] = countIsohedral(boundary_words, start, end);
-      });
-    }
-    for (auto& th: threads) {
-      th.join();
-    }
-    num_isohedral = std::accumulate(partial_sums.begin(), partial_sums.end(), 0);*/
 
     for (const auto& boundary: boundary_words) {
       bool is_iso = false;
@@ -167,22 +132,6 @@ int main(int argc, char **argv) {
         ++num_quart_turn;
         is_iso = true;
       }
-      if (!checker.has_type_1_reflection_tiling(boundary).empty()) {
-        ++num_refl_1;
-        is_iso = true;
-      }
-      if (!checker.has_type_2_reflection_tiling(boundary).empty()) {
-        ++num_refl_2;
-        is_iso = true;
-      }
-      if (!checker.has_type_1_half_turn_reflection_tiling(boundary).empty()) {
-        ++num_turn_refl_1;
-        is_iso = true;
-      }
-      if (!checker.has_type_2_half_turn_reflection_tiling(boundary).empty()) {
-        ++num_turn_refl_2;
-        is_iso = true;
-      }
 
       if (is_iso) {
         ++num_isohedral;
@@ -191,11 +140,7 @@ int main(int argc, char **argv) {
     cout << "Num isohedral: " << num_isohedral << "\n";
     cout << "Num trans: " << num_trans << "\n";
     cout << "Num half turn: " << num_half_turn << "\n";
-    cout << "Num quarter turn: " << num_quart_turn << "\n";
-    cout << "Num refl 1: " << num_refl_1 << "\n";
-    cout << "Num refl 2: " << num_refl_2 << "\n";
-    cout << "Num turn refl 1: " << num_turn_refl_1 << "\n";
-    cout << "Num turn refl 2: " << num_turn_refl_2 << "\n\n";
+    cout << "Num quarter turn: " << num_quart_turn << "\n\n";
   }
 }
 

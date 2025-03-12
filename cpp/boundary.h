@@ -42,6 +42,7 @@ edgeset<typename grid::coord_t> getUniqueTileEdges(const Shape<grid>& shape) {
   return ret;
 }
 
+// This code currently only works for the hex grid.
 template<typename grid>
 std::string getBoundaryWord(const Shape<grid>& shape) {
   using coord_t = typename grid::coord_t;
@@ -63,28 +64,28 @@ std::string getBoundaryWord(const Shape<grid>& shape) {
   point_t start = bottomLeft;
   point_t cur = start;
 
-  char NW = 'u';
-  char NE = 'U';
-  char SW = 'd';
-  char SE = 'D';
+  char NW = 'L';
+  char NE = 'R';
+  char SW = 'l';
+  char SE = 'r';
 
   std::string boundary;
 
-  // From the bottom left we can only go NW or NE. Prefer NW.
-  point_t nw = neighbours[start] + point_t(-1, 1);
-  if (neighbours[start].find(nw)) {
+  // From the bottom left we can only go NW or U. Prefer NW.
+  point_t nw = start + point_t(-2, 1);
+  if (neighbours[start].find(nw) != neighbours[start].end()) {
     cur = nw;
     neighbours[nw].erase(start);
     boundary += NW;
   } else {
-    cur = neighbours[start] + point_t(0, 1);
+    cur = start + point_t(-1, 2);
     neighbours[cur].erase(start);
-    boundary += NE;
+    boundary += 'U';
   }
 
   std::map<point_t, char> edgeToLetter = {
-    {point_t(0, 1), 'U'}, {point_t(1, 0), 'R'}, {point_t(1, -1), 'D'},
-    {point_t(0, -1), 'd'}, {point_t(-1, 0), 'L'}, {point_t(-1, 1), 'u'}
+    {point_t(-1, 2), 'U'}, {point_t(1, -2), 'D'}, {point_t(1, 1), 'R'},
+    {point_t(2, -1), 'r'}, {point_t(-2, 1), 'L'}, {point_t(-1, -1), 'l'}
   };
   while (cur != start) {
     point_t next = *neighbours[cur].begin();

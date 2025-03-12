@@ -1,4 +1,5 @@
 #include "boundary.h"
+#include "hexgrid.h"
 #include "ominogrid.h"
 
 #include <iostream>
@@ -16,7 +17,7 @@ int main() {
     cout << "(" << e.first.getX() << ", " << e.first.getY() << ") to (" << e.second.getX() << ", " << e.second.getY() << ")\n";
   }
 
-  shape = Shape<OminoGrid<int>>();
+  /*shape = Shape<OminoGrid<int>>();
   shape.add(0, 0);
   shape.add(1, 0);
   shape.add(2, 0);
@@ -37,5 +38,13 @@ int main() {
   shape.add(1, 1);
   shape.add(2, 1);
   shape.add(2, 0);
-  cout << "Boundary: " << getBoundaryWord(shape) << "\n";
+  cout << "Boundary: " << getBoundaryWord(shape) << "\n";*/
+
+  Shape<HexGrid<int>> hexShape;
+  hexShape.add(0, 0);
+  hexShape.add(1, 0);
+  hexShape.add(0, 1);
+  auto hexEdges = getUniqueTileEdges(hexShape);
+
+  cout << "Boundary: " << getBoundaryWord(hexShape) << "\n";
 }

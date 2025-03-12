@@ -18,6 +18,29 @@ using Factor = std::pair<int, int>;
 
 std::vector<Factor> is_double_palindrome(const Factor& F, const std::vector<std::vector<Factor>>& palindrome_factor_starts, const std::vector<std::vector<Factor>>& palindrome_factor_ends, int n);
 
+struct IsohedralChecker {
+
+std::unordered_map<char, char> COMPLEMENT = {
+  {'N', 'S'},
+  {'S', 'N'},
+  {'E', 'W'},
+  {'W', 'E'}
+};
+
+std::unordered_map<char, char> CCW = {
+  {'N', 'W'},
+  {'E', 'N'},
+  {'S', 'E'},
+  {'W', 'S'}
+};
+
+std::unordered_map<int, std::unordered_map<char, char>> REFL = {
+  {-45, {{'N', 'W'}, {'E', 'S'}, {'S', 'E'}, {'W', 'N'}}},
+  {0, {{'N', 'S'}, {'E', 'E'}, {'S', 'N'}, {'W', 'W'}}},
+  {45, {{'N', 'E'}, {'E', 'N'}, {'S', 'W'}, {'W', 'S'}}},
+  {90, {{'N', 'N'}, {'E', 'W'}, {'S', 'S'}, {'W', 'E'}}},
+};
+
 bool is_reflect_square_factor(const std::string& P, int i, int j, int theta);
 
 std::string inv_comp(const std::string& S);
@@ -47,6 +70,8 @@ std::vector<Factor> has_type_1_half_turn_reflection_tiling(const std::string& P)
 std::vector<Factor> has_type_2_half_turn_reflection_tiling(const std::string& P);
 
 bool has_isohedral_tiling(const std::string& P);
+
+};
 
 #endif // ISOHEDRAL_H
 
