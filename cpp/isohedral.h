@@ -18,7 +18,10 @@ using Factor = std::pair<int, int>;
 
 std::vector<Factor> is_double_palindrome(const Factor& F, const std::vector<std::vector<Factor>>& palindrome_factor_starts, const std::vector<std::vector<Factor>>& palindrome_factor_ends, int n);
 
+
 struct IsohedralChecker {
+
+int minAngle = 90;
 
 std::unordered_map<char, char> COMPLEMENT = {
   {'N', 'S'},
@@ -40,6 +43,8 @@ std::unordered_map<int, std::unordered_map<char, char>> REFL = {
   {45, {{'N', 'E'}, {'E', 'N'}, {'S', 'W'}, {'W', 'S'}}},
   {90, {{'N', 'N'}, {'E', 'W'}, {'S', 'S'}, {'W', 'E'}}},
 };
+
+char iteratedCcw(char dir, int numIters);
 
 bool is_reflect_square_factor(const std::string& P, int i, int j, int theta);
 

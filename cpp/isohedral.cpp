@@ -70,6 +70,14 @@ string IsohedralChecker::inv_comp(const std::string& S) {
   return result;
 }
 
+char IsohedralChecker::iteratedCcw(char dir, int numIters) {
+  if (dir <= 0) return 'X';
+  for (int i = 0; i < numIters; ++i) {
+    dir = CCW[dir];
+  }
+  return dir;
+}
+
 vector<Factor> IsohedralChecker::admissible_mirror_factors(const std::string& P) {
   int n = P.length();
   vector<Factor> factors;
@@ -132,6 +140,7 @@ vector<pair<Factor, Factor>> IsohedralChecker::admissible_gapped_mirror_factor_p
 
 vector<Factor> IsohedralChecker::admissible_rotadrome_factors(const string& P, int theta) {
   int n = P.length();
+  int numCcw = (theta % minAngle == 0) ? theta / minAngle : -1;
   vector<Factor> factors;
   // Compute admissible palindrome factors starting between letter pairs
   for (int i = 0; i < n; ++i) {
@@ -140,7 +149,7 @@ vector<Factor> IsohedralChecker::admissible_rotadrome_factors(const string& P, i
     string rotString(n + (n - i), 'X');
     string secondString = P.substr(i) + P;
     for (int i = 0; i < secondString.length(); ++i) {
-      rotString[i] = (theta == 90) ? CCW[secondString[i]] : secondString[i];
+      rotString[i] = (theta == 180) ? secondString[i] : iteratedCcw(secondString[i], numCcw);
     }
     int l = longest_match(firstString, rotString, n/2);
     if (l > 0) {
@@ -168,7 +177,8 @@ vector<Factor> IsohedralChecker::admissible_reflect_square_factors(const string&
       if (j == i) {
         continue;
       }
-      for (int theta = -45; theta <= 90; theta += 45) {
+      for (auto &p: REFL) {
+        int theta = p.first;
         if (is_reflect_square_factor(P, i, j, theta)) {
           factors.insert({i, j});
         }
@@ -362,7 +372,8 @@ vector<Factor> IsohedralChecker::has_type_1_reflection_tiling(const string& P) {
 vector<Factor> IsohedralChecker::has_type_2_reflection_tiling(const string& P) {
   int n = P.length();
   vector<Factor> mirror_factors = admissible_mirror_factors(P);
-  for (int theta = -45; theta <= 90; theta += 45) {
+  for (auto& p: REFL) {
+    int theta = p.first;
     map<Factor, vector<pair<Factor, Factor>>> reflect_factor_tips;
     for (auto& p: admissible_gapped_reflect_square_factor_pairs(P, theta)) {
       Factor f = p.first;
@@ -470,7 +481,8 @@ vector<Factor> IsohedralChecker::has_type_2_half_turn_reflection_tiling(const st
   int n = P.length();
   vector<Factor> palin_factors = admissible_rotadrome_factors(P, 180);
   map<int, vector<pair<Factor, Factor>>> reflect_factor_pairs;
-  for (int theta = -45; theta <= 90; theta += 45) {
+  for (auto& p: REFL) {
+    int theta = p.first;
     reflect_factor_pairs[theta] = admissible_gapped_reflect_square_factor_pairs(P, theta);
     // Double up, both for tips and for f1, cf1 iterating since B, refl(B) are not symmetric
     vector<pair<Factor, Factor>> reversed_pairs;
@@ -480,17 +492,12 @@ vector<Factor> IsohedralChecker::has_type_2_half_turn_reflection_tiling(const st
     reflect_factor_pairs[theta].insert(reflect_factor_pairs[theta].end(), reversed_pairs.begin(), reversed_pairs.end());
   }
 
-  /*cout << "Printing reflect pairs\n";
-  for (auto& p: reflect_factor_pairs[-45]) {
-    cout << "factor 1: ";
-    printFactor(p.first);
-    cout << "factor 2: ";
-    printFactor(p.second);
-    cout << "\n";
+  vector<pair<int, int>> theta_pairs;
+  for (auto&p: REFL){
+    int theta = p.first;
+    int perpendicular = (theta > 0) ? theta - 90: theta + 90;
+    theta_pairs.push_back({theta, perpendicular});
   }
-  cout << "Length: " << reflect_factor_pairs[-45].size() << "\n";*/
-
-  vector<pair<int, int>> theta_pairs = {{0, 90}, {90, 0}, {-45, 45}, {45, -45}};
   for (auto& p: theta_pairs) {
     int theta1 = p.first;
     int theta2 = p.second;

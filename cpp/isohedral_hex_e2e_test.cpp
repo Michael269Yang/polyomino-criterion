@@ -29,6 +29,7 @@ int main(int argc, char **argv) {
 
   IsohedralChecker checker;
   if (gridType == "hex") {
+    checker.minAngle = 60;
     checker.COMPLEMENT = {
       {'U', 'D'},
       {'D', 'U'},
@@ -46,18 +47,24 @@ int main(int argc, char **argv) {
       {'R', 'U'}
     };
     checker.REFL = {
-      {-45, {
-        {'U', 'U'}, {'D', 'D'}, {'R', 'R'}, {'l', 'l'}, {'r', 'r'}, {'L', 'L'}
+      {-60, {
+        {'D', 'r'}, {'r', 'D'}, {'l', 'R'}, {'R', 'l'}, {'L', 'U'}, {'U', 'L'}
+      }},
+      {-30, {
+
+        {'r', 'r'}, {'D', 'R'}, {'R', 'D'}, {'l', 'U'}, {'U', 'l'}, {'L', 'L'}
       }},
       {0, {
-
-        {'U', 'U'}, {'D', 'D'}, {'R', 'R'}, {'l', 'l'}, {'r', 'r'}, {'L', 'L'}
+        {'r', 'R'}, {'R', 'r'}, {'U', 'D'}, {'D', 'U'}, {'L', 'l'}, {'l', 'L'}
       }},
-      {45, {
-        {'U', 'U'}, {'D', 'D'}, {'R', 'R'}, {'l', 'l'}, {'r', 'r'}, {'L', 'L'}
+      {30, {
+        {'R', 'R'}, {'r', 'U'}, {'U', 'r'}, {'L', 'D'}, {'D', 'L'}, {'l', 'l'}
+      }},
+      {60, {
+        {'U', 'R'}, {'R', 'U'}, {'L', 'r'}, {'r', 'L'}, {'D', 'l'}, {'l', 'D'}
       }},
       {90, {
-        {'U', 'U'}, {'D', 'D'}, {'R', 'R'}, {'l', 'l'}, {'r', 'r'}, {'L', 'L'}
+        {'U', 'U'}, {'L', 'R'}, {'R', 'L'}, {'l', 'r'}, {'r', 'l'}, {'D', 'D'}
       }},
     };
   }
@@ -84,7 +91,10 @@ int main(int argc, char **argv) {
     int num_isohedral = 0;
     int num_trans = 0;
     int num_half_turn = 0;
-    int num_quart_turn = 0;
+    int num_type_1_refl = 0;
+    int num_type_2_refl = 0;
+    int num_type_1_ht_refl = 0;
+    int num_type_2_ht_refl = 0;
     std::string line;
     std::vector<std::string> boundary_words;
     while (std::getline(inputFile, line)) {
@@ -128,8 +138,20 @@ int main(int argc, char **argv) {
         ++num_half_turn;
         is_iso = true;
       }
-      if (!checker.has_quarter_turn_tiling(boundary).empty()) {
-        ++num_quart_turn;
+      if (!checker.has_type_1_reflection_tiling(boundary).empty()) {
+        ++num_type_1_refl;
+        is_iso = true;
+      }
+      if (!checker.has_type_2_reflection_tiling(boundary).empty()) {
+        ++num_type_2_refl;
+        is_iso = true;
+      }
+      if (!checker.has_type_1_half_turn_reflection_tiling(boundary).empty()) {
+        ++num_type_1_ht_refl;
+        is_iso = true;
+      }
+      if (!checker.has_type_2_half_turn_reflection_tiling(boundary).empty()) {
+        ++num_type_2_ht_refl;
         is_iso = true;
       }
 
@@ -140,7 +162,10 @@ int main(int argc, char **argv) {
     cout << "Num isohedral: " << num_isohedral << "\n";
     cout << "Num trans: " << num_trans << "\n";
     cout << "Num half turn: " << num_half_turn << "\n";
-    cout << "Num quarter turn: " << num_quart_turn << "\n\n";
+    cout << "Num type 1 refl: " << num_type_1_refl << "\n";
+    cout << "Num type 2 refl: " << num_type_2_refl << "\n";
+    cout << "Num type 1 ht refl: " << num_type_1_ht_refl << "\n";
+    cout << "Num type 2 ht refl: " << num_type_2_ht_refl << "\n\n";
   }
 }
 
