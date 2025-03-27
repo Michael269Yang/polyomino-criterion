@@ -70,10 +70,10 @@ string IsohedralChecker::inv_comp(const std::string& S) {
   return result;
 }
 
-char IsohedralChecker::iteratedCcw(char dir, int numIters) {
-  if (dir <= 0) return 'X';
+char IsohedralChecker::iteratedCw(char dir, int numIters) {
+  if (dir < 0) return 'X';
   for (int i = 0; i < numIters; ++i) {
-    dir = CCW[dir];
+    dir = CW[dir];
   }
   return dir;
 }
@@ -138,9 +138,35 @@ vector<pair<Factor, Factor>> IsohedralChecker::admissible_gapped_mirror_factor_p
   return factor_pairs;
 }
 
+vector<Factor> IsohedralChecker::admissible_rotation_factors(const string& P, int theta) {
+  int n = P.length();
+  cout << "Theta is: " << theta << "\n";
+  theta = 180 - theta;
+  cout << "New theta is: " << theta << "\n";
+  int numCw = (theta % minAngle == 0) ? theta / minAngle : -1;
+  vector<Factor> factors;
+  for (int i = 0; i < n; ++i) {
+    string firstString = P + P.substr(0, i);
+    string rotString(n + (n - i), 'X');
+    string secondString = P.substr(i) + P;
+    for (int i = 0; i < secondString.length(); ++i) {
+      rotString[i] = iteratedCw(secondString[i], numCw);
+    }
+    if (i >=3 && i <= 6) {
+      cout << "FS: " << firstString << "\n";
+      cout << "SS: " << rotString << "\n";
+
+    }
+    int l = longest_match(firstString, rotString, n/2);
+    if (l > 0) {
+      factors.push_back(make_pair((i-l+n)%n, (i-1+l)%n));
+    }
+  }
+  return factors;
+}
+
 vector<Factor> IsohedralChecker::admissible_rotadrome_factors(const string& P, int theta) {
   int n = P.length();
-  int numCcw = (theta % minAngle == 0) ? theta / minAngle : -1;
   vector<Factor> factors;
   // Compute admissible palindrome factors starting between letter pairs
   for (int i = 0; i < n; ++i) {
@@ -149,7 +175,7 @@ vector<Factor> IsohedralChecker::admissible_rotadrome_factors(const string& P, i
     string rotString(n + (n - i), 'X');
     string secondString = P.substr(i) + P;
     for (int i = 0; i < secondString.length(); ++i) {
-      rotString[i] = (theta == 180) ? secondString[i] : iteratedCcw(secondString[i], numCcw);
+      rotString[i] = (theta == 180) ? secondString[i] : CCW[secondString[i]];
     }
     int l = longest_match(firstString, rotString, n/2);
     if (l > 0) {
@@ -577,6 +603,177 @@ vector<Factor> IsohedralChecker::has_type_2_half_turn_reflection_tiling(const st
   return {};
 }
 
+vector<Factor> IsohedralChecker::has_case_7_tiling(const std::string& P) {
+  // A t_120(A) B t_120(B) C t_120(C)
+  int n = P.length();
+  vector<Factor> factors = admissible_rotation_factors(P, 120);
+  vector<set<Factor>> factor_starts(n);
+  for (auto& f: factors) {
+    cout << "Factor"; 
+    printFactor(f);
+    cout <<"\n";
+    factor_starts[f.first].insert(f);
+  }
+
+  for (auto& A: factors) {
+    int A_len = A.second - A.first + 1 + n * (A.second < A.first);
+    // Two empty 120-dromes (not sure if this is actually possible).
+    if (A_len == n) {
+      return {A};
+    }
+    for (auto& B: factor_starts[(A.second + 1)%n]) {
+      int B_len = B.second - B.first + 1 + n * (B.second < B.first);
+      // One empty 120-drome.
+      if (A_len + B_len == n) {
+        return {A, B};
+      }
+      // No empty 120-drome factors.
+      for (auto& C: factor_starts[(B.second+1)%n]) {
+        int C_len = C.second - C.first + 1 + n * (C.second < C.first);
+        if (A_len + B_len + C_len == n) {
+          return {A, B, C};
+        }
+      }
+    }
+  }
+  return {};
+}
+
+vector<Factor> IsohedralChecker::has_case_8a_tiling(const string& P) {
+  // At_60(A) Bt_120(B) C where C is palindrome.
+  int n = P.length();
+  vector<Factor> palin_factors = admissible_rotadrome_factors(P, 180);
+  vector<Factor> sixty_factors = admissible_rotation_factors(P, 60);
+  vector<Factor> onetwenty_factors = admissible_rotation_factors(P, 120);
+
+  vector<vector<Factor>> sixty_factor_starts(n);
+  for (auto& f: sixty_factors) {
+    sixty_factor_starts[f.first].push_back(f);
+  }
+  vector<vector<Factor>> onetwenty_factor_starts(n);
+  for (auto& f: onetwenty_factors) {
+    onetwenty_factor_starts[f.first].push_back(f);
+  }
+
+  // Factorizations with non-empty palindrome factor.
+  for (auto& C: palin_factors) {
+    int C_len = C.second - C.first + 1 + n * (C.second < C.first);
+    // Empty 60-drome factor.
+    for (auto& B: onetwenty_factor_starts[(C.second + 1)%n]) {
+      int B_len = B.second - B.first + 1 + n * (B.second < B.first);
+      if (B_len + C_len == n) {
+        return {B, C};
+      }
+    }
+    // No empty 60-drome factor
+    for (auto& A: sixty_factor_starts[(C.second + 1)%n]) {
+      int A_len = A.second - A.first + 1 + n * (A.second < A.first);
+      // Empty 120-drome factor.
+      if (A_len + C_len == n) {
+        return {A, C};
+      }
+      // No empty 120-drome factor.
+      for (auto& B: onetwenty_factor_starts[(A.second + 1)%n]) {
+        int B_len = B.second - B.first + 1 + n * (B.second < B.first);
+        if (A_len + B_len + C_len == n) {
+          return {A, B, C};
+        }
+      }
+    }
+  }
+  // Factorizations with empty palindrome factor and empty 60-drome factor.
+  for (auto& B: onetwenty_factors) {
+      int B_len = B.second - B.first + 1 + n * (B.second < B.first);
+      if (B_len == n) {
+        return {B};
+      }
+  }
+  // Factorizations with empty palindrome factor and non-empty 60-drome factor.
+  for (auto& A: sixty_factors) {
+    int A_len = A.second - A.first + 1 + n * (A.second < A.first);
+    // Empty 120-drome factor.
+    if (A_len == n) {
+      return {A};
+    }
+    // Non-empty 120-drome factor.
+    for (auto& B: sixty_factor_starts[(A.second + 1)%n]) {
+      int B_len = B.second - B.first + 1 + n * (B.second < B.first);
+      if (A_len + B_len == n) {
+        return {A, B};
+      }
+    }
+  }
+  return {};
+}
+
+vector<Factor> IsohedralChecker::has_case_8b_tiling(const string& P) {
+  int n = P.length();
+  vector<Factor> palin_factors = admissible_rotadrome_factors(P, 180);
+  vector<Factor> sixty_factors = admissible_rotation_factors(P, 60);
+  vector<Factor> onetwenty_factors = admissible_rotation_factors(P, 120);
+
+  vector<vector<Factor>> sixty_factor_starts(n);
+  for (auto& f: sixty_factors) {
+    sixty_factor_starts[f.first].push_back(f);
+  }
+  vector<vector<Factor>> onetwenty_factor_starts(n);
+  for (auto& f: onetwenty_factors) {
+    onetwenty_factor_starts[f.first].push_back(f);
+  }
+
+  // Factorizations with non-empty palindrome factor.
+  for (auto& B: palin_factors) {
+    int B_len = B.second - B.first + 1 + n * (B.second < B.first);
+    // Empty 120-drome factor.
+    for (auto& A: sixty_factor_starts[(B.second + 1)%n]) {
+      int A_len = A.second - A.first + 1 + n * (A.second < A.first);
+      if (A_len + B_len == n) {
+        return {A, B};
+      }
+    }
+    // No empty 120-drome factor
+    for (auto& C: onetwenty_factor_starts[(B.second + 1)%n]) {
+      int C_len = C.second - C.first + 1 + n * (C.second < C.first);
+      // Empty 60-drome factor.
+      if (B_len + C_len == n) {
+        return {B, C};
+      }
+      // No empty 60-drome factor.
+      for (auto& A: onetwenty_factor_starts[(C.second + 1)%n]) {
+        int A_len = A.second - A.first + 1 + n * (A.second < A.first);
+        if (A_len + B_len + C_len == n) {
+          return {A, B, C};
+        }
+      }
+    }
+  }
+  // Factorizations with empty palindrome factor and empty 120-drome factor.
+  for (auto& A: sixty_factors) {
+      int A_len = A.second - A.first + 1 + n * (A.second < A.first);
+      if (A_len == n) {
+        return {A};
+      }
+  }
+  // Factorizations with empty palindrome factor and no empty 120-drome factor.
+  for (auto& C: onetwenty_factors) {
+    int C_len = C.second - C.first + 1 + n * (C.second < C.first);
+    // Empty 60-drome factor.
+    if (C_len == n) {
+      return {C};
+    }
+    // No empty 60-drome factor.
+    for (auto& A: sixty_factor_starts[(C.second + 1)%n]) {
+      int A_len = A.second - A.first + 1 + n * (A.second < A.first);
+      if (A_len + C_len == n) {
+        return {A, C};
+      }
+    }
+  }
+  return {};
+
+}
+
+
 bool IsohedralChecker::has_isohedral_tiling(const std::string &P) {
   return !has_half_turn_tiling(P).empty() || 
         !has_translation_tiling(P).empty() ||
@@ -584,6 +781,9 @@ bool IsohedralChecker::has_isohedral_tiling(const std::string &P) {
         !has_type_1_reflection_tiling(P).empty() ||
         !has_type_2_reflection_tiling(P).empty() ||
         !has_type_1_half_turn_reflection_tiling(P).empty() ||
-        !has_type_2_half_turn_reflection_tiling(P).empty();
+        !has_type_2_half_turn_reflection_tiling(P).empty() ||
+        !has_case_7_tiling(P).empty() ||
+        !has_case_8a_tiling(P).empty() ||
+        !has_case_8b_tiling(P).empty();
 }
 

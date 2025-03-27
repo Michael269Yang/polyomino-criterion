@@ -39,12 +39,20 @@ int main(int argc, char **argv) {
       {'r', 'L'}
     };
     checker.CCW = {
+      {'U', 'R'},
+      {'R', 'r'},
+      {'r', 'D'},
+      {'D', 'l'},
+      {'l', 'L'},
+      {'L', 'U'}
+    };
+    checker.CW = {
+      {'R', 'U'},
       {'U', 'L'},
       {'L', 'l'},
       {'l', 'D'},
       {'D', 'r'},
-      {'r', 'R'},
-      {'R', 'U'}
+      {'r', 'R'}
     };
     checker.REFL = {
       {-60, {
@@ -95,6 +103,9 @@ int main(int argc, char **argv) {
     int num_type_2_refl = 0;
     int num_type_1_ht_refl = 0;
     int num_type_2_ht_refl = 0;
+    int num_case_7 = 0;
+    /*int num_case_8a = 0;
+    int num_case_8b = 0;*/
     std::string line;
     std::vector<std::string> boundary_words;
     while (std::getline(inputFile, line)) {
@@ -125,14 +136,16 @@ int main(int argc, char **argv) {
     cout << "Done extracting boundary words\n";
     cout << "Num polyominoes: " << boundary_words.size() << "\n";
 
+    //boundary_words = {"LURULULULlLURrRrDrRrDlDrDlDl"};
+    //boundary_words = {"LURrDl"};
+    boundary_words = {"LURURULURrDrDrRrDlLlLULlDrDl"};
+
     for (const auto& boundary: boundary_words) {
+      cout << "Boundary: " << boundary << "\n";
       bool is_iso = false;
       if (!checker.has_translation_tiling(boundary).empty()) {
         ++num_trans;
         is_iso = true;
-        if (checker.has_half_turn_tiling(boundary).empty()) {
-          cout << "Found trans but not 180: " << boundary << "\n";
-        }
       }
       if (!checker.has_half_turn_tiling(boundary).empty()) {
         ++num_half_turn;
@@ -154,6 +167,21 @@ int main(int argc, char **argv) {
         ++num_type_2_ht_refl;
         is_iso = true;
       }
+      if (!checker.has_case_7_tiling(boundary).empty()) {
+        ++num_case_7;
+        is_iso = true;
+      }
+      if (!is_iso) {
+        cout << "Found non isohedral: " << boundary << "\n";
+      }
+      /*if (!checker.has_case_8a_tiling(boundary).empty()) {
+        ++num_case_8a;
+        is_iso = true;
+      }
+      if (!checker.has_case_8b_tiling(boundary).empty()) {
+        ++num_case_8b;
+        is_iso = true;
+      }*/
 
       if (is_iso) {
         ++num_isohedral;
@@ -165,7 +193,8 @@ int main(int argc, char **argv) {
     cout << "Num type 1 refl: " << num_type_1_refl << "\n";
     cout << "Num type 2 refl: " << num_type_2_refl << "\n";
     cout << "Num type 1 ht refl: " << num_type_1_ht_refl << "\n";
-    cout << "Num type 2 ht refl: " << num_type_2_ht_refl << "\n\n";
+    cout << "Num type 2 ht refl: " << num_type_2_ht_refl << "\n";
+    cout << "Num case 7: " << num_case_7 << "\n\n";
   }
 }
 
