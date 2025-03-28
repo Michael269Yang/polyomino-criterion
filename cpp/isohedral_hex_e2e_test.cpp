@@ -136,12 +136,9 @@ int main(int argc, char **argv) {
     cout << "Done extracting boundary words\n";
     cout << "Num polyominoes: " << boundary_words.size() << "\n";
 
-    //boundary_words = {"LURULULULlLURrRrDrRrDlDrDlDl"};
-    //boundary_words = {"LURrDl"};
-    boundary_words = {"LURURULURrDrDrRrDlLlLULlDrDl"};
+    //boundary_words = {"LULURURURrDrDrRrDlLlLULlDrDl"};
 
     for (const auto& boundary: boundary_words) {
-      cout << "Boundary: " << boundary << "\n";
       bool is_iso = false;
       if (!checker.has_translation_tiling(boundary).empty()) {
         ++num_trans;
@@ -170,9 +167,6 @@ int main(int argc, char **argv) {
       if (!checker.has_case_7_tiling(boundary).empty()) {
         ++num_case_7;
         is_iso = true;
-      }
-      if (!is_iso) {
-        cout << "Found non isohedral: " << boundary << "\n";
       }
       /*if (!checker.has_case_8a_tiling(boundary).empty()) {
         ++num_case_8a;

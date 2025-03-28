@@ -140,22 +140,16 @@ vector<pair<Factor, Factor>> IsohedralChecker::admissible_gapped_mirror_factor_p
 
 vector<Factor> IsohedralChecker::admissible_rotation_factors(const string& P, int theta) {
   int n = P.length();
-  cout << "Theta is: " << theta << "\n";
   theta = 180 - theta;
-  cout << "New theta is: " << theta << "\n";
   int numCw = (theta % minAngle == 0) ? theta / minAngle : -1;
   vector<Factor> factors;
   for (int i = 0; i < n; ++i) {
     string firstString = P + P.substr(0, i);
+    reverse(firstString.begin(), firstString.end());
     string rotString(n + (n - i), 'X');
     string secondString = P.substr(i) + P;
     for (int i = 0; i < secondString.length(); ++i) {
       rotString[i] = iteratedCw(secondString[i], numCw);
-    }
-    if (i >=3 && i <= 6) {
-      cout << "FS: " << firstString << "\n";
-      cout << "SS: " << rotString << "\n";
-
     }
     int l = longest_match(firstString, rotString, n/2);
     if (l > 0) {
@@ -609,9 +603,6 @@ vector<Factor> IsohedralChecker::has_case_7_tiling(const std::string& P) {
   vector<Factor> factors = admissible_rotation_factors(P, 120);
   vector<set<Factor>> factor_starts(n);
   for (auto& f: factors) {
-    cout << "Factor"; 
-    printFactor(f);
-    cout <<"\n";
     factor_starts[f.first].insert(f);
   }
 
