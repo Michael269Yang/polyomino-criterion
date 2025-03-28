@@ -608,10 +608,6 @@ vector<Factor> IsohedralChecker::has_case_7_tiling(const std::string& P) {
 
   for (auto& A: factors) {
     int A_len = A.second - A.first + 1 + n * (A.second < A.first);
-    // Two empty 120-dromes (not sure if this is actually possible).
-    if (A_len == n) {
-      return {A};
-    }
     for (auto& B: factor_starts[(A.second + 1)%n]) {
       int B_len = B.second - B.first + 1 + n * (B.second < B.first);
       // One empty 120-drome.
