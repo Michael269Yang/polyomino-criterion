@@ -41,39 +41,6 @@ int main(int argc, char **argv) {
   std::string gridType = (argc == 4) ? argv[3] : "omino";
 
   IsohedralChecker checker;
-  if (gridType == "hex") {
-    checker.COMPLEMENT = {
-      {'U', 'D'},
-      {'D', 'U'},
-      {'l', 'R'},
-      {'R', 'l'},
-      {'L', 'r'},
-      {'r', 'L'}
-    };
-    checker.CCW = {
-      {'U', 'L'},
-      {'L', 'l'},
-      {'l', 'D'},
-      {'D', 'r'},
-      {'r', 'R'},
-      {'R', 'U'}
-    };
-    checker.REFL = {
-      {-45, {
-        {'U', 'U'}, {'D', 'D'}, {'R', 'R'}, {'l', 'l'}, {'r', 'r'}, {'L', 'L'}
-      }},
-      {0, {
-
-        {'U', 'U'}, {'D', 'D'}, {'R', 'R'}, {'l', 'l'}, {'r', 'r'}, {'L', 'L'}
-      }},
-      {45, {
-        {'U', 'U'}, {'D', 'D'}, {'R', 'R'}, {'l', 'l'}, {'r', 'r'}, {'L', 'L'}
-      }},
-      {90, {
-        {'U', 'U'}, {'D', 'D'}, {'R', 'R'}, {'l', 'l'}, {'r', 'r'}, {'L', 'L'}
-      }},
-    };
-  }
 
   // Generate the polyominos
   for (int i = 1; i <= N; ++i) {
@@ -103,7 +70,7 @@ int main(int argc, char **argv) {
     int num_turn_refl_1 = 0;
     int num_turn_refl_2 = 0;
     std::string line;
-    std::vector<std::string> boundary_words;
+    std::vector<boundaryword> boundary_words;
     while (std::getline(inputFile, line)) {
       std::istringstream iss(line);
       std::string temp;
@@ -125,7 +92,7 @@ int main(int argc, char **argv) {
         shape.add(nums[i], nums[i+1]);
       }
 
-      std::string boundary = getBoundaryWord(shape);
+      boundaryword boundary = getBoundaryWord(shape);
       boundary_words.push_back(boundary);
     }
 
@@ -155,9 +122,6 @@ int main(int argc, char **argv) {
       if (!checker.has_translation_tiling(boundary).empty()) {
         ++num_trans;
         is_iso = true;
-        if (checker.has_half_turn_tiling(boundary).empty()) {
-          cout << "Found trans but not 180: " << boundary << "\n";
-        }
       }
       if (!checker.has_half_turn_tiling(boundary).empty()) {
         ++num_half_turn;

@@ -46,5 +46,5 @@ int main() {
   hexShape.add(0, 1);
   auto hexEdges = getUniqueTileEdges(hexShape);
 
-  cout << "Boundary: " << getBoundaryWord(hexShape) << "\n";
+  //cout << "Boundary: " << getBoundaryWord(hexShape) << "\n";
 }

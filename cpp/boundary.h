@@ -9,6 +9,12 @@
 #include <set>
 #include <utility>
 
+using boundaryword = std::vector<std::pair<int, int>>;
+
+boundaryword operator+(const boundaryword& lhs,
+                       const boundaryword& rhs);
+boundaryword slice(const boundaryword& boundary, int start, int end=-1);
+
 template<typename coord>
 using edge = std::pair<point<coord>, point<coord>>;
 template<typename coord>
@@ -44,7 +50,7 @@ edgeset<typename grid::coord_t> getUniqueTileEdges(const Shape<grid>& shape) {
 
 // This code currently only works for the hex grid.
 template<typename grid>
-std::string getBoundaryWord(const Shape<grid>& shape) {
+boundaryword getBoundaryWord(const Shape<grid>& shape) {
   using coord_t = typename grid::coord_t;
   using edge_t = edge<coord_t>;
   using edgeset_t = edgeset<coord_t>;
@@ -64,41 +70,42 @@ std::string getBoundaryWord(const Shape<grid>& shape) {
   point_t start = bottomLeft;
   point_t cur = start;
 
-  char NW = 'L';
-  char NE = 'R';
-  char SW = 'l';
-  char SE = 'r';
+  std::pair<int, int> NW = {-2, 1};
+  std::pair<int, int> NE = {1, 1};
+  std::pair<int, int> SW = {-1, -1};
+  std::pair<int, int> SE = {2, -1};
+  std::pair<int, int> U = {-1, 2};
 
-  std::string boundary;
+  boundaryword boundary;
 
   // From the bottom left we can only go NW or U. Prefer NW.
   point_t nw = start + point_t(-2, 1);
   if (neighbours[start].find(nw) != neighbours[start].end()) {
     cur = nw;
     neighbours[nw].erase(start);
-    boundary += NW;
+    boundary.push_back(NW);
   } else {
     cur = start + point_t(-1, 2);
     neighbours[cur].erase(start);
-    boundary += 'U';
+    boundary.push_back({-1, 2});
   }
 
-  std::map<point_t, char> edgeToLetter = {
+  /*std::map<point_t, char> edgeToLetter = {
     {point_t(-1, 2), 'U'}, {point_t(1, -2), 'D'}, {point_t(1, 1), 'R'},
     {point_t(2, -1), 'r'}, {point_t(-2, 1), 'L'}, {point_t(-1, -1), 'l'}
-  };
+  };*/
   while (cur != start) {
     point_t next = *neighbours[cur].begin();
     point_t edgeDir = next - cur;
     neighbours[next].erase(cur);
     cur = next;
-    boundary += edgeToLetter[edgeDir];
+    boundary.push_back({edgeDir.getX(), edgeDir.getY()});
   }
   return boundary;
 }
 
 template <typename coord>
-std::string getBoundaryWord(const Shape<OminoGrid<coord>>& shape) {
+boundaryword getBoundaryWord(const Shape<OminoGrid<coord>>& shape) {
   using point_t = typename OminoGrid<coord>::point_t;
 
   const int E = 0;
@@ -106,9 +113,10 @@ std::string getBoundaryWord(const Shape<OminoGrid<coord>>& shape) {
   const int W = 2;
   const int S = 3;
 
-  const std::string dirs = "ENWS";
+  const std::vector<std::pair<int, int>> dirs = 
+    {{1, 0}, {0, 1}, {-1, 0}, {0, -1}};
 
-  std::string ret;
+  boundaryword ret;
 
   // bit 0 = N edge, bit 1 = E edge, bit 2 = S edge, bit 3 = W edge.
   std::map<point_t, std::bitset<4>> vertexToEdges;
@@ -146,7 +154,7 @@ std::string getBoundaryWord(const Shape<OminoGrid<coord>>& shape) {
   // Start at next point and keep traversing boundary until reach start aka bottomLeft.
   point_t cur(bottomLeft.getX(), bottomLeft.getY() + 1);
   int8_t prevDir = N;
-  ret += 'N';
+  ret.push_back({0, 1});
   while (cur != bottomLeft) {
     // If we're currently going straight, always prioritize going left, then 
     // continuing straight, then going right.
@@ -161,18 +169,18 @@ std::string getBoundaryWord(const Shape<OminoGrid<coord>>& shape) {
       // 90 degree rotation of direction (x, y) is (-y, x).
       prevDir = leftDir;
       next = cur + point_t(-prevDirY, prevDirX);
-      ret += dirs[leftDir];
+      ret.push_back(dirs[leftDir]);
     } else if (vertexToEdges[cur].test(prevDir)) {
       // Go straight. 
       // 0 degree rotation of direction (x, y) is (x, y).
       next = cur + point_t(prevDirX, prevDirY);
-      ret += dirs[prevDir];
+      ret.push_back(dirs[prevDir]);
     } else {
       // Turn right. 
       // 270 degree rotation of direction (x, y) is (y, -x).
       prevDir = rightDir;
       next = cur + point_t(prevDirY, -prevDirX);
-      ret += dirs[rightDir];
+      ret.push_back(dirs[rightDir]);
     }
 
     cur = next;
