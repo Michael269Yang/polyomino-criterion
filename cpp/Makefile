@@ -23,7 +23,11 @@ ISOHEDRAL_HEX_E2E_SOURCES = isohedral.cpp isohedral_hex_e2e_test.cpp boundary.cp
 ISOHEDRAL_HEX_E2E_OBJECTS = $(ISOHEDRAL_HEX_E2E_SOURCES:.cpp=.o)
 ISOHEDRAL_HEX_E2E_DEPENDS = $(ISOHEDRAL_HEX_E2E_OBJECTS:.o=.d)
 
-SOURCES = boundary.cpp boundary_test.cpp isohedral.cpp isohedral_test.cpp isohedral_e2e_test.cpp isohedral_hex_e2e_test.cpp
+ISOHEDRAL_IAMOND_E2E_SOURCES = isohedral.cpp isohedral_iamond_e2e_test.cpp boundary.cpp
+ISOHEDRAL_IAMOND_E2E_OBJECTS = $(ISOHEDRAL_IAMOND_E2E_SOURCES:.cpp=.o)
+ISOHEDRAL_IAMOND_E2E_DEPENDS = $(ISOHEDRAL_IAMOND_E2E_OBJECTS:.o=.d)
+
+SOURCES = boundary.cpp boundary_test.cpp isohedral.cpp isohedral_test.cpp isohedral_e2e_test.cpp isohedral_hex_e2e_test.cpp isohedral_iamond_e2e_test.cpp
 OBJECTS = $(SOURCES:.cpp=.o)
 DEPENDS = $(OBJECTS:.o=.d)
 
@@ -42,7 +46,10 @@ isohedral_e2e: $(ISOHEDRAL_E2E_OBJECTS)
 isohedral_hex_e2e: $(ISOHEDRAL_HEX_E2E_OBJECTS)
 	$(CXX) $(CXXFLAGS) $(ISOHEDRAL_HEX_E2E_OBJECTS) -o isohedral_hex_e2e
 
+isohedral_iamond_e2e: $(ISOHEDRAL_IAMOND_E2E_OBJECTS)
+	$(CXX) $(CXXFLAGS) $(ISOHEDRAL_IAMOND_E2E_OBJECTS) -o isohedral_iamond_e2e
+
 .PHONY: clean
 
 clean:
-	rm ${OBJECTS} ${DEPENDS} ${TARGETS}
+	rm ${OBJECTS} ${DEPENDS} ${TARGETS} *.txt

@@ -2,6 +2,8 @@
 #define BOUNDARY_H
 
 #include "geom.h"
+#include "hexgrid.h"
+#include "iamondgrid.h"
 #include "ominogrid.h"
 #include "shape.h"
 
@@ -49,13 +51,12 @@ edgeset<typename grid::coord_t> getUniqueTileEdges(const Shape<grid>& shape) {
 }
 
 // This code currently only works for the hex grid.
-template<typename grid>
-boundaryword getBoundaryWord(const Shape<grid>& shape) {
-  using coord_t = typename grid::coord_t;
-  using edge_t = edge<coord_t>;
-  using edgeset_t = edgeset<coord_t>;
-  using edgemap_t = edgemap<coord_t>;
-  using point_t = typename grid::point_t;
+template <typename coord>
+boundaryword getBoundaryWord(const Shape<HexGrid<coord>>& shape) {
+  using edge_t = edge<coord>;
+  using edgeset_t = edgeset<coord>;
+  using edgemap_t = edgemap<coord>;
+  using point_t = typename HexGrid<coord>::point_t;
 
   edgemap_t neighbours;
   point_t bottomLeft(300, 300);
@@ -103,6 +104,59 @@ boundaryword getBoundaryWord(const Shape<grid>& shape) {
   }
   return boundary;
 }
+
+// This code currently only works for the iamond grid.
+template <typename coord>
+boundaryword getBoundaryWord(const Shape<IamondGrid<coord>>& shape) {
+  using edge_t = edge<coord>;
+  using edgeset_t = edgeset<coord>;
+  using edgemap_t = edgemap<coord>;
+  using point_t = typename HexGrid<coord>::point_t;
+
+  edgemap_t neighbours;
+  point_t bottomLeft(300, 300);
+  for (auto& edge: getUniqueTileEdges(shape)) {
+    neighbours[edge.first].insert(edge.second);
+    neighbours[edge.second].insert(edge.first);
+
+    bottomLeft = std::min(bottomLeft, edge.first);
+    bottomLeft = std::min(bottomLeft, edge.second);
+  }
+
+  point_t start = bottomLeft;
+  point_t cur = start;
+
+  std::pair<int, int> E = {3, 0};
+  std::pair<int, int> NE = {0, 3};
+  std::pair<int, int> NW = {-3, 3};
+  std::pair<int, int> W = {-3, 0};
+  std::pair<int, int> SW = {0, -3};
+  std::pair<int, int> SE = {3, -3};
+
+  boundaryword boundary;
+
+  // From the bottom left we can only go NW or NE. Prefer NW.
+  point_t nw = start + point_t(NW.first, NW.second);
+  if (neighbours[start].find(nw) != neighbours[start].end()) {
+    cur = nw;
+    neighbours[nw].erase(start);
+    boundary.push_back(NW);
+  } else {
+    cur = start + point_t(NE.first, NE.second);
+    neighbours[cur].erase(start);
+    boundary.push_back(NE);
+  }
+
+  while (cur != start) {
+    point_t next = *neighbours[cur].begin();
+    point_t edgeDir = next - cur;
+    neighbours[next].erase(cur);
+    cur = next;
+    boundary.push_back({edgeDir.getX(), edgeDir.getY()});
+  }
+  return boundary;
+}
+
 
 template <typename coord>
 boundaryword getBoundaryWord(const Shape<OminoGrid<coord>>& shape) {

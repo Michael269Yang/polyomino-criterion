@@ -1,7 +1,6 @@
 #include "boundary.h"
-#include "hexgrid.h"
+#include "iamondgrid.h"
 #include "isohedral.h"
-#include "ominogrid.h"
 
 #include <ctime>
 #include <cstdlib>
@@ -9,7 +8,6 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <utility>
 
 using namespace std;
 
@@ -28,59 +26,58 @@ int main(int argc, char **argv) {
 
   std::string gridType = (argc == 4) ? argv[3] : "hex";
 
+  pair<int, int> E = {3, 0};
+  pair<int, int> NE = {0, 3};
+  pair<int, int> NW = {-3, 3};
+  pair<int, int> W = {-3, 0};
+  pair<int, int> SW = {0, -3};
+  pair<int, int> SE = {3, -3};
   IsohedralChecker checker;
-  pair<int, int> U = {-1, 2};
-  pair<int, int> D = {1, -2};
-  pair<int, int> R = {1, 1};
-  pair<int, int> r = {2, -1};
-  pair<int, int> L = {-2, 1};
-  pair<int, int> l = {-1, -1};
-
-  if (gridType == "hex") {
+  if (gridType == "iamond") {
     checker.minAngle = 60;
+
     checker.COMPLEMENT = {
-      {U, D},
-      {D, U},
-      {l, R},
-      {R, l},
-      {L, r},
-      {r, L}
-    };
-    checker.CW = {
-      {U, R},
-      {R, r},
-      {r, D},
-      {D, l},
-      {l, L},
-      {L, U}
+      {E, W},
+      {W, E},
+      {NE, SW},
+      {SW, NE},
+      {NW, SE},
+      {SE, NW}
     };
     checker.CCW = {
-      {R, U},
-      {U, L},
-      {L, l},
-      {l, D},
-      {D, r},
-      {r, R}
+      {E, NE},
+      {NE, NW},
+      {NW, W},
+      {W, SW},
+      {SW, SE},
+      {SE, E}
+    };
+    checker.CW = {
+      {E, SE},
+      {SE, SW},
+      {SW, W},
+      {W, NW},
+      {NW, NE},
+      {NE, E}
     };
     checker.REFL = {
       {-60, {
-        {D, r}, {r, D}, {l, R}, {R, l}, {L, U}, {U, L}
+        {SE, SE}, {E, SW}, {SW, E}, {NE, W}, {W, NE}, {NW, NW}
       }},
       {-30, {
-
-        {r, r}, {D, R}, {R, D}, {l, U}, {U, l}, {L, L}
+        {E, SE}, {SE, E}, {NE, SW}, {SW, NE}, {W, NW}, {NW, W}
       }},
       {0, {
-        {r, R}, {R, r}, {U, D}, {D, U}, {L, l}, {l, L}
+        {E, E}, {NE, SE}, {SE, NE}, {SW, NW}, {NW, SW}, {W, W}
       }},
       {30, {
-        {R, R}, {r, U}, {U, r}, {L, D}, {D, L}, {l, l}
+        {E, NE}, {NE, E}, {NW, SE}, {SE, NW}, {W, SW}, {SW, W}
       }},
       {60, {
-        {U, R}, {R, U}, {L, r}, {r, L}, {D, l}, {l, D}
+        {NE, NE}, {E, NW}, {NW, E}, {W, SE}, {SE, W}, {SW, SW}
       }},
       {90, {
-        {U, U}, {L, R}, {R, L}, {l, r}, {r, l}, {D, D}
+        {NE, NW}, {NW, NE}, {E, W}, {W, E}, {SW, SE}, {SE, SW}
       }},
     };
   }
@@ -112,8 +109,8 @@ int main(int argc, char **argv) {
     int num_type_1_ht_refl = 0;
     int num_type_2_ht_refl = 0;
     int num_case_7 = 0;
-    /*int num_case_8a = 0;
-    int num_case_8b = 0;*/
+    int num_case_8a = 0;
+    int num_case_8b = 0;
     std::string line;
     std::vector<boundaryword> boundary_words;
     while (std::getline(inputFile, line)) {
@@ -132,7 +129,7 @@ int main(int argc, char **argv) {
         continue;
       }
 
-      Shape<HexGrid<int>> shape = Shape<HexGrid<int>>();
+      Shape<IamondGrid<int>> shape = Shape<IamondGrid<int>>();
       for (int i = 0; i < nums.size(); i += 2) {
         shape.add(nums[i], nums[i+1]);
       }
@@ -141,10 +138,11 @@ int main(int argc, char **argv) {
       boundary_words.push_back(boundary);
     }
 
+    /*boundary_words = {
+      {NW, W, NE, E, NW, E, SE, SW, SW}
+    };*/
     cout << "Done extracting boundary words\n";
     cout << "Num polyominoes: " << boundary_words.size() << "\n";
-
-    //boundary_words = {"LULURURURrDrDrRrDlLlLULlDrDl"};
 
     for (const auto& boundary: boundary_words) {
       bool is_iso = false;
@@ -176,9 +174,28 @@ int main(int argc, char **argv) {
         ++num_case_7;
         is_iso = true;
       }
+      if (!checker.has_case_8a_tiling(boundary).empty()) {
+        ++num_case_8a;
+        is_iso = true;
+      }
+      if (!checker.has_case_8b_tiling(boundary).empty()) {
+        ++num_case_8b;
+        is_iso = true;
+      }
 
       if (is_iso) {
         ++num_isohedral;
+      }
+      else {
+        /*map<pair<int, int>, char> theMap = {
+          {E, 'E'}, {NE, 'R'}, {NW, 'L'}, {W, 'W'}, {SW, 'l'}, {SE, 'r'}
+        };
+        string bad;
+        for (auto& p: boundary) {
+          cout << "(" << p.first << ", " << p.second << ") ";
+          bad += theMap[p];
+        }
+        cout << "Non-tiler: " << bad << "\n";*/
       }
     }
     cout << "Num isohedral: " << num_isohedral << "\n";
@@ -188,7 +205,9 @@ int main(int argc, char **argv) {
     cout << "Num type 2 refl: " << num_type_2_refl << "\n";
     cout << "Num type 1 ht refl: " << num_type_1_ht_refl << "\n";
     cout << "Num type 2 ht refl: " << num_type_2_ht_refl << "\n";
-    cout << "Num case 7: " << num_case_7 << "\n\n";
+    cout << "Num case 7: " << num_case_7 << "\n";
+    cout << "Num case 8a: " << num_case_8a << "\n";
+    cout << "Num case 8b: " << num_case_8b << "\n\n";
   }
 }
 

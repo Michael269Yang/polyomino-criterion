@@ -53,7 +53,7 @@ std::map<int, std::map<std::pair<int, int>, std::pair<int, int>>> REFL = {
   {90, {{{0, 1}, {0, 1}}, {{1, 0}, {-1, 0}}, {{0, -1}, {0, -1}}, {{-1, 0}, {1, 0}}}},
 };
 
-std::pair<int, int> iteratedCw(std::pair<int, int> dir, int numIters);
+std::pair<int, int> iteratedCcw(std::pair<int, int> dir, int numIters);
 
 bool is_reflect_square_factor(const boundaryword& P, int i, int j, int theta);
 

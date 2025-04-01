@@ -69,10 +69,10 @@ boundaryword IsohedralChecker::inv_comp(const boundaryword& S) {
   return result;
 }
 
-pair<int, int> IsohedralChecker::iteratedCw(pair<int, int> dir, int numIters) {
+pair<int, int> IsohedralChecker::iteratedCcw(pair<int, int> dir, int numIters) {
   if (numIters < 0) return {0, 0};
   for (int i = 0; i < numIters; ++i) {
-    dir = CW[dir];
+    dir = CCW[dir];
   }
   return dir;
 }
@@ -137,10 +137,48 @@ vector<pair<Factor, Factor>> IsohedralChecker::admissible_gapped_mirror_factor_p
   return factor_pairs;
 }
 
+/*string convertToStr(const boundaryword& P) {
+  pair<int, int> E = {3, 0};
+  pair<int, int> NE = {0, 3};
+  pair<int, int> NW = {-3, 3};
+  pair<int, int> W = {-3, 0};
+  pair<int, int> SW = {0, -3};
+  pair<int, int> SE = {3, -3};
+  map<pair<int, int>, char> theMap = {
+    {E, 'E'}, {NE, 'R'}, {NW, 'L'}, {W, 'W'}, {SW, 'l'}, {SE, 'r'}
+  };
+
+  string ret;
+  for (auto& p: P) {
+    ret += theMap[p];
+  }
+  return ret;
+}*/
+
+
+string convertToStr(const boundaryword& P) {
+  pair<int, int> U = {-1, 2};
+  pair<int, int> D = {1, -2};
+  pair<int, int> R = {1, 1};
+  pair<int, int> r = {2, -1};
+  pair<int, int> L = {-2, 1};
+  pair<int, int> l = {-1, -1};
+
+  map<pair<int, int>, char> theMap = {
+    {U, 'U'}, {D, 'D'}, {R, 'R'}, {r, 'r'}, {L, 'L'}, {l, 'l'}
+  };
+
+  string ret;
+  for (auto& p: P) {
+    ret += theMap[p];
+  }
+  return ret;
+}
+
 vector<Factor> IsohedralChecker::admissible_rotation_factors(const boundaryword& P, int theta) {
   int n = P.size();
   theta = 180 - theta;
-  int numCw = (theta % minAngle == 0) ? theta / minAngle : -1;
+  int numCcw = (theta % minAngle == 0) ? theta / minAngle : -1;
   vector<Factor> factors;
   for (int i = 0; i < n; ++i) {
     boundaryword firstString = P + slice(P, 0, i);
@@ -148,8 +186,11 @@ vector<Factor> IsohedralChecker::admissible_rotation_factors(const boundaryword&
     boundaryword rotString(n + (n - i), {0, 0});
     boundaryword secondString = slice(P, i)+ P;
     for (int i = 0; i < secondString.size(); ++i) {
-      rotString[i] = iteratedCw(secondString[i], numCw);
+      rotString[i] = iteratedCcw(secondString[i], numCcw);
     }
+    /*cout << "First string: " << convertToStr(firstString) << "\n";
+    cout << "Second stirng: " << convertToStr(secondString) << "\n";
+    cout << "Rot string: " << convertToStr(rotString) << "\n";*/
     int l = longest_match(firstString, rotString, n/2);
     if (l > 0) {
       factors.push_back(make_pair((i-l+n)%n, (i-1+l)%n));
