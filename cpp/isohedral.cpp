@@ -709,21 +709,9 @@ vector<Factor> IsohedralChecker::has_case_8a_tiling(const boundaryword& P) {
       }
     }
   }
-  // Factorizations with empty palindrome factor and empty 60-drome factor.
-  for (auto& B: onetwenty_factors) {
-      int B_len = B.second - B.first + 1 + n * (B.second < B.first);
-      if (B_len == n) {
-        return {B};
-      }
-  }
   // Factorizations with empty palindrome factor and non-empty 60-drome factor.
   for (auto& A: sixty_factors) {
     int A_len = A.second - A.first + 1 + n * (A.second < A.first);
-    // Empty 120-drome factor.
-    if (A_len == n) {
-      return {A};
-    }
-    // Non-empty 120-drome factor.
     for (auto& B: sixty_factor_starts[(A.second + 1)%n]) {
       int B_len = B.second - B.first + 1 + n * (B.second < B.first);
       if (A_len + B_len == n) {
@@ -735,6 +723,7 @@ vector<Factor> IsohedralChecker::has_case_8a_tiling(const boundaryword& P) {
 }
 
 vector<Factor> IsohedralChecker::has_case_8b_tiling(const boundaryword& P) {
+  // At_60(A) B Ct_120(C)
   int n = P.size();
   vector<Factor> palin_factors = admissible_rotadrome_factors(P, 180);
   vector<Factor> sixty_factors = admissible_rotation_factors(P, 60);
@@ -767,7 +756,7 @@ vector<Factor> IsohedralChecker::has_case_8b_tiling(const boundaryword& P) {
         return {B, C};
       }
       // No empty 60-drome factor.
-      for (auto& A: onetwenty_factor_starts[(C.second + 1)%n]) {
+      for (auto& A: sixty_factor_starts[(C.second + 1)%n]) {
         int A_len = A.second - A.first + 1 + n * (A.second < A.first);
         if (A_len + B_len + C_len == n) {
           return {A, B, C};
@@ -775,21 +764,9 @@ vector<Factor> IsohedralChecker::has_case_8b_tiling(const boundaryword& P) {
       }
     }
   }
-  // Factorizations with empty palindrome factor and empty 120-drome factor.
-  for (auto& A: sixty_factors) {
-      int A_len = A.second - A.first + 1 + n * (A.second < A.first);
-      if (A_len == n) {
-        return {A};
-      }
-  }
   // Factorizations with empty palindrome factor and no empty 120-drome factor.
   for (auto& C: onetwenty_factors) {
     int C_len = C.second - C.first + 1 + n * (C.second < C.first);
-    // Empty 60-drome factor.
-    if (C_len == n) {
-      return {C};
-    }
-    // No empty 60-drome factor.
     for (auto& A: sixty_factor_starts[(C.second + 1)%n]) {
       int A_len = A.second - A.first + 1 + n * (A.second < A.first);
       if (A_len + C_len == n) {

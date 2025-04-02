@@ -139,7 +139,9 @@ int main(int argc, char **argv) {
     }
 
     /*boundary_words = {
-      {NW, W, NE, E, NW, E, SE, SW, SW}
+      //{NE, NW, E, SE, NE, E, SW, SE, W, W, W},
+      //{NE, NW, NW, E, SE, NE, SE, SW, SE, W, W},
+      {NW, E, NW, NE, E, SW, SE, E, SW, W, W}
     };*/
     cout << "Done extracting boundary words\n";
     cout << "Num polyominoes: " << boundary_words.size() << "\n";
