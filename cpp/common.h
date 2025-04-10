@@ -6,7 +6,8 @@ enum GridType {
 
   OMINO = 0,
   HEX = 1,
-  IAMOND = 2
+  IAMOND = 2,
+  KITE = 3
 };
 
 #endif // COMMON_H

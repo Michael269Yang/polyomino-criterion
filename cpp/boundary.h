@@ -4,6 +4,7 @@
 #include "geom.h"
 #include "hexgrid.h"
 #include "iamondgrid.h"
+#include "kitegrid.h"
 #include "ominogrid.h"
 #include "shape.h"
 
@@ -53,8 +54,6 @@ edgeset<typename grid::coord_t> getUniqueTileEdges(const Shape<grid>& shape) {
 // This code currently only works for the hex grid.
 template <typename coord>
 boundaryword getBoundaryWord(const Shape<HexGrid<coord>>& shape) {
-  using edge_t = edge<coord>;
-  using edgeset_t = edgeset<coord>;
   using edgemap_t = edgemap<coord>;
   using point_t = typename HexGrid<coord>::point_t;
 
@@ -72,10 +71,6 @@ boundaryword getBoundaryWord(const Shape<HexGrid<coord>>& shape) {
   point_t cur = start;
 
   std::pair<int, int> NW = {-2, 1};
-  std::pair<int, int> NE = {1, 1};
-  std::pair<int, int> SW = {-1, -1};
-  std::pair<int, int> SE = {2, -1};
-  std::pair<int, int> U = {-1, 2};
 
   boundaryword boundary;
 
@@ -105,11 +100,72 @@ boundaryword getBoundaryWord(const Shape<HexGrid<coord>>& shape) {
   return boundary;
 }
 
+// This code currently only works for the kite grid.
+template <typename coord>
+boundaryword getBoundaryWord(const Shape<KiteGrid<coord>>& shape) {
+  using edgemap_t = edgemap<coord>;
+  using point_t = typename KiteGrid<coord>::point_t;
+
+  edgemap_t neighbours;
+  point_t bottomLeft(300, 300);
+  for (auto& edge: getUniqueTileEdges(shape)) {
+    neighbours[edge.first].insert(edge.second);
+    neighbours[edge.second].insert(edge.first);
+
+    bottomLeft = std::min(bottomLeft, edge.first);
+    bottomLeft = std::min(bottomLeft, edge.second);
+  }
+
+  point_t start = bottomLeft;
+  point_t cur = start;
+
+  std::pair<int, int> NW = {-2, 1};
+  std::pair<int, int> sNW = {-1, 1};
+  std::pair<int, int> N = {-1, 2};
+  std::pair<int, int> sNE = {0, 1};
+  std::pair<int, int> NE = {1, 1};
+
+  boundaryword boundary;
+
+  // From the bottom left we pick greedily in the order NW, sNW, N, sNE, NE.
+  point_t nw = start + point_t(NW.first, NW.second);
+  point_t snw = start + point_t(sNW.first, sNW.second);
+  point_t n = start + point_t(N.first, N.second);
+  point_t sne = start + point_t(sNE.first, sNE.second);
+  point_t ne = start + point_t(NE.first, NE.second);
+  if (neighbours[start].find(nw) != neighbours[start].end()) {
+    cur = nw;
+    boundary.push_back(NW);
+  } else if (neighbours[start].find(snw) != neighbours[start].end()) {
+    cur = snw;
+    boundary.push_back(sNW);
+  } else if (neighbours[start].find(n) != neighbours[start].end()) {
+    cur = n; 
+    boundary.push_back(N);
+  } else if (neighbours[start].find(sne) != neighbours[start].end()) {
+    cur = sne;
+    boundary.push_back(sNE);
+  } else {
+    cur = ne;
+    boundary.push_back(NE);
+  }
+  neighbours[cur].erase(start);
+
+  while (cur != start) {
+    point_t next = *neighbours[cur].begin();
+    point_t edgeDir = next - cur;
+    neighbours[next].erase(cur);
+    cur = next;
+    boundary.push_back({edgeDir.getX(), edgeDir.getY()});
+  }
+  return boundary;
+}
+
+
+
 // This code currently only works for the iamond grid.
 template <typename coord>
 boundaryword getBoundaryWord(const Shape<IamondGrid<coord>>& shape) {
-  using edge_t = edge<coord>;
-  using edgeset_t = edgeset<coord>;
   using edgemap_t = edgemap<coord>;
   using point_t = typename HexGrid<coord>::point_t;
 
@@ -126,12 +182,8 @@ boundaryword getBoundaryWord(const Shape<IamondGrid<coord>>& shape) {
   point_t start = bottomLeft;
   point_t cur = start;
 
-  std::pair<int, int> E = {3, 0};
   std::pair<int, int> NE = {0, 3};
   std::pair<int, int> NW = {-3, 3};
-  std::pair<int, int> W = {-3, 0};
-  std::pair<int, int> SW = {0, -3};
-  std::pair<int, int> SE = {3, -3};
 
   boundaryword boundary;
 

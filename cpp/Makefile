@@ -27,7 +27,11 @@ ISOHEDRAL_IAMOND_E2E_SOURCES = isohedral.cpp isohedral_iamond_e2e_test.cpp bound
 ISOHEDRAL_IAMOND_E2E_OBJECTS = $(ISOHEDRAL_IAMOND_E2E_SOURCES:.cpp=.o)
 ISOHEDRAL_IAMOND_E2E_DEPENDS = $(ISOHEDRAL_IAMOND_E2E_OBJECTS:.o=.d)
 
-SOURCES = boundary.cpp boundary_test.cpp isohedral.cpp isohedral_test.cpp isohedral_e2e_test.cpp isohedral_hex_e2e_test.cpp isohedral_iamond_e2e_test.cpp
+ISOHEDRAL_KITE_E2E_SOURCES = isohedral.cpp isohedral_kite_e2e_test.cpp boundary.cpp
+ISOHEDRAL_KITE_E2E_OBJECTS = $(ISOHEDRAL_KITE_E2E_SOURCES:.cpp=.o)
+ISOHEDRAL_KITE_E2E_DEPENDS = $(ISOHEDRAL_KITE_E2E_OBJECTS:.o=.d)
+
+SOURCES = boundary.cpp boundary_test.cpp isohedral.cpp isohedral_test.cpp isohedral_e2e_test.cpp isohedral_hex_e2e_test.cpp isohedral_iamond_e2e_test.cpp isohedral_kite_e2e_test.cpp
 OBJECTS = $(SOURCES:.cpp=.o)
 DEPENDS = $(OBJECTS:.o=.d)
 
@@ -48,6 +52,9 @@ isohedral_hex_e2e: $(ISOHEDRAL_HEX_E2E_OBJECTS)
 
 isohedral_iamond_e2e: $(ISOHEDRAL_IAMOND_E2E_OBJECTS)
 	$(CXX) $(CXXFLAGS) $(ISOHEDRAL_IAMOND_E2E_OBJECTS) -o isohedral_iamond_e2e
+
+isohedral_kite_e2e: $(ISOHEDRAL_KITE_E2E_OBJECTS)
+	$(CXX) $(CXXFLAGS) $(ISOHEDRAL_KITE_E2E_OBJECTS) -o isohedral_kite_e2e
 
 .PHONY: clean
 
