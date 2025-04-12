@@ -7,6 +7,7 @@
 #include <ctime>
 #include <cstdlib>
 #include <fstream>
+#include <future>
 #include <iostream>
 #include <numeric>
 #include <sstream>
@@ -14,16 +15,6 @@
 #include <thread>
 
 using namespace std;
-
-/*int countIsohedral(const vector<string>& boundaryWords, size_t start, size_t end) {
-  int num_isohedral = 0;
-  for (size_t i = start; i < end; ++i) {
-    if (has_isohedral_tiling(boundaryWords[i])) {
-      ++num_isohedral;
-    }
-  }
-  return num_isohedral;
-}*/
 
 int main(int argc, char **argv) {
   cout << "argc: " << argc << "\n";
@@ -98,68 +89,57 @@ int main(int argc, char **argv) {
 
     cout << "Done extracting boundary words\n";
     cout << "Num polyominoes: " << boundary_words.size() << "\n";
-    /*size_t num_threads = min<size_t>(boundary_words.size(), thread::hardware_concurrency());
-    size_t chunk_size = boundary_words.size() / num_threads;
 
-    std::vector<thread> threads;
-    std::vector<int> partial_sums(num_threads);
+    auto start = std::chrono::high_resolution_clock::now();
+
+    size_t num_threads = std::thread::hardware_concurrency();
+    size_t chunk_size = boundary_words.size() / num_threads;
+    if (chunk_size == 0) {
+      chunk_size = boundary_words.size();
+      num_threads = 1;
+    }
+
+    std::vector<std::future<int>> futures;
     for (size_t i = 0; i < num_threads; ++i) {
       size_t start = i * chunk_size;
       size_t end = (i == num_threads - 1) ? boundary_words.size() : (i + 1) * chunk_size;
-      cout << "start: " << start << " end: " << end << "\n";
 
-      threads.emplace_back([&boundary_words, &partial_sums, &start, &end, &i](){
-        partial_sums[i] = countIsohedral(boundary_words, start, end);
-      });
+      futures.push_back(std::async(std::launch::async, [start, end, &boundary_words, &checker]() {
+        int local_count = 0;
+        for (size_t j = start; j < end; ++j) {
+          if (checker.has_isohedral_tiling(boundary_words[j])) {
+            ++local_count;
+          }
+        }
+        return local_count;
+      }));
     }
-    for (auto& th: threads) {
-      th.join();
-    }
-    num_isohedral = std::accumulate(partial_sums.begin(), partial_sums.end(), 0);*/
 
-    for (const auto& boundary: boundary_words) {
-      bool is_iso = false;
-      if (!checker.has_translation_tiling(boundary).empty()) {
-        ++num_trans;
-        is_iso = true;
-      }
-      if (!checker.has_half_turn_tiling(boundary).empty()) {
-        ++num_half_turn;
-        is_iso = true;
-      }
-      if (!checker.has_quarter_turn_tiling(boundary).empty()) {
-        ++num_quart_turn;
-        is_iso = true;
-      }
-      if (!checker.has_type_1_reflection_tiling(boundary).empty()) {
-        ++num_refl_1;
-        is_iso = true;
-      }
-      if (!checker.has_type_2_reflection_tiling(boundary).empty()) {
-        ++num_refl_2;
-        is_iso = true;
-      }
-      if (!checker.has_type_1_half_turn_reflection_tiling(boundary).empty()) {
-        ++num_turn_refl_1;
-        is_iso = true;
-      }
-      if (!checker.has_type_2_half_turn_reflection_tiling(boundary).empty()) {
-        ++num_turn_refl_2;
-        is_iso = true;
-      }
-
-      if (is_iso) {
-        ++num_isohedral;
-      }
+    // Collect the  results from each future
+    std::vector<int> results;
+    for (auto& future: futures) {
+      results.push_back(future.get());
     }
-    cout << "Num isohedral: " << num_isohedral << "\n";
-    cout << "Num trans: " << num_trans << "\n";
-    cout << "Num half turn: " << num_half_turn << "\n";
-    cout << "Num quarter turn: " << num_quart_turn << "\n";
-    cout << "Num refl 1: " << num_refl_1 << "\n";
-    cout << "Num refl 2: " << num_refl_2 << "\n";
-    cout << "Num turn refl 1: " << num_turn_refl_1 << "\n";
-    cout << "Num turn refl 2: " << num_turn_refl_2 << "\n\n";
+
+    num_isohedral = std::accumulate(results.begin(), results.end(), 0);
+
+    cout << "Num isohedral: " << num_isohedral << "\n\n";
+
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::seconds>(end - start);
+
+    // Convert duration to hours, minutes, and seconds
+    auto hours = std::chrono::duration_cast<std::chrono::hours>(duration);
+    duration -= hours;
+    auto minutes = std::chrono::duration_cast<std::chrono::minutes>(duration);
+    duration -= minutes;
+    auto seconds = std::chrono::duration_cast<std::chrono::seconds>(duration);
+
+    // Display the execution time in HH:MM:SS format
+    std::cout << "Execution time: "
+              << std::setw(2) << std::setfill('0') << hours.count() << ":"
+              << std::setw(2) << std::setfill('0') << minutes.count() << ":"
+              << std::setw(2) << std::setfill('0') << seconds.count() << std::endl;
   }
 }
 

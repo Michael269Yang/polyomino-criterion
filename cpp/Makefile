@@ -5,7 +5,7 @@ CXXFLAGS = -Wall -std=c++17 $(OPT)
 
 OBJECTS = $(SOURCES:.cc=.o) 
 
-TARGETS = boundary isohedral isohedral_e2e isohedral_hex_e2e
+TARGETS = boundary isohedral isohedral_e2e isohedral_hex_e2e isohedral_iamond_e2e isohedral_kite_e2e
 
 BOUNDARY_SOURCES = boundary_test.cpp boundary.cpp
 BOUNDARY_OBJECTS = $(BOUNDARY_SOURCES:.cpp=.o)
