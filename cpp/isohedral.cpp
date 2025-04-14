@@ -24,21 +24,21 @@ int longest_match(const boundaryword& S1, const boundaryword& S2, size_t ub) {
   return i;
 }
 
-vector<Factor> is_double_palindrome(const Factor& F, const vector<vector<Factor>>& palindrome_factor_starts, const vector<vector<Factor>>& palindrome_factor_ends, int n) {
+bool is_double_palindrome(const Factor& F, const vector<vector<Factor>>& palindrome_factor_starts, const vector<vector<Factor>>& palindrome_factor_ends, int n) {
   int F_len = F.second - F.first + 1 + n * (F.second < F.first);
   for (const auto& F1: palindrome_factor_starts[F.first]) {
     int F1_len = F1.second - F1.first + 1 + n * (F1.second < F1.first);
     if (F1_len == F_len) {
-      return {F1};
+      return true;
     }
     for (const auto& F2: palindrome_factor_ends[F.second]) {
       int F2_len = F2.second - F2.first + 1 + n * (F2.second < F2.first);
       if (F_len == F1_len + F2_len) {
-        return {F1, F2};
+        return true;
       }
     }
   }
-  return {};
+  return false;
 }
 
 bool IsohedralChecker::is_reflect_square_factor(const boundaryword& P, int i, int j, int theta) {
@@ -271,7 +271,7 @@ vector<pair<Factor, Factor>> IsohedralChecker::admissible_gapped_reflect_square_
   return factor_pairs;
 }
 
-vector<Factor> IsohedralChecker::has_translation_tiling(const boundaryword& P, const std::vector<Factor>& mirror_factors) {
+bool IsohedralChecker::has_translation_tiling(const boundaryword& P, const std::vector<Factor>& mirror_factors) {
   int n = P.size();
   vector<set<Factor>> factor_starts(n);
   vector<set<Factor>> factor_ends(n);
@@ -288,19 +288,19 @@ vector<Factor> IsohedralChecker::has_translation_tiling(const boundaryword& P, c
           continue;
         }
         if (AB_len == n / 2) {
-          return {A, B};
+          return true;
         }
         Factor C = {(B.second + 1)%n, (A.first + n/2 - 1 + n)%n};
         if (factor_starts[C.first].find(C) != factor_starts[C.first].end()) {
-          return {A, B, C};
+          return true;
         }
       }
     }
   }
-  return {};
+  return false;
 }
 
-vector<Factor> IsohedralChecker::has_half_turn_tiling(const boundaryword& P, const vector<pair<Factor, Factor>>& mirror_factor_pairs, const vector<Factor>& palin_factors) {
+bool IsohedralChecker::has_half_turn_tiling(const boundaryword& P, const vector<pair<Factor, Factor>>& mirror_factor_pairs, const vector<Factor>& palin_factors) {
   int n = P.size();
   vector<vector<Factor>> palindrome_factor_starts(n);
   vector<vector<Factor>> palindrome_factor_ends(n);
@@ -309,24 +309,17 @@ vector<Factor> IsohedralChecker::has_half_turn_tiling(const boundaryword& P, con
     palindrome_factor_ends[f.second].push_back(f);
   }
 
-  Factor last_A;
-  Factor last_A_hat;
   for (auto& p: mirror_factor_pairs)  {
     Factor A = p.first;
     Factor A_hat = p.second;
 
     Factor dpi1 = make_pair((A.second+1)%n, (A_hat.first-1+n)%n);
     Factor dpi2 = make_pair((A_hat.second+1)%n, (A.first-1+n)%n);
-    vector<Factor> dp1 = is_double_palindrome(dpi1, palindrome_factor_starts, palindrome_factor_ends, n);
-    vector<Factor> dp2 = is_double_palindrome(dpi2, palindrome_factor_starts, palindrome_factor_ends, n);
+    bool dp1 = is_double_palindrome(dpi1, palindrome_factor_starts, palindrome_factor_ends, n);
+    bool dp2 = is_double_palindrome(dpi2, palindrome_factor_starts, palindrome_factor_ends, n);
 
-    if (!dp1.empty() && !dp2.empty()) {
-      vector<Factor> result;
-      result.push_back(A);
-      result.insert(result.end(), dp1.begin(), dp1.end());
-      result.push_back(A_hat);
-      result.insert(result.end(), dp2.begin(), dp2.end());
-      return result;
+    if (dp1 && dp2) {
+      return true;
     }
   }
 
@@ -337,22 +330,17 @@ vector<Factor> IsohedralChecker::has_half_turn_tiling(const boundaryword& P, con
       }
       Factor dpi1 = make_pair(i, (j-1+n)%n);
       Factor dpi2 = make_pair(j%n, (i-1+n)%n);
-      vector<Factor> dp1 = is_double_palindrome(dpi1, palindrome_factor_starts, palindrome_factor_ends, n);
-      vector<Factor> dp2 = is_double_palindrome(dpi2, palindrome_factor_starts, palindrome_factor_ends, n);
-      if (!dp1.empty() && !dp2.empty()) {
-        vector<Factor> result;
-        result.push_back(last_A);
-        result.insert(result.end(), dp1.begin(), dp1.end());
-        result.push_back(last_A_hat);
-        result.insert(result.end(), dp2.begin(), dp2.end());
-        return result;
+      bool dp1 = is_double_palindrome(dpi1, palindrome_factor_starts, palindrome_factor_ends, n);
+      bool dp2 = is_double_palindrome(dpi2, palindrome_factor_starts, palindrome_factor_ends, n);
+      if (dp1 && dp2) {
+        return true;
       }
     }
   }
-  return {};
+  return false;
 }
 
-vector<Factor> IsohedralChecker::has_quarter_turn_tiling(const boundaryword& P, const vector<Factor>& ninety_factors, const vector<Factor>& palin_factors) {
+bool IsohedralChecker::has_quarter_turn_tiling(const boundaryword& P, const vector<Factor>& ninety_factors, const vector<Factor>& palin_factors) {
   int n = P.size();
   vector<vector<Factor>> ninety_factor_starts(n);
   for (auto& f: ninety_factors) {
@@ -365,13 +353,13 @@ vector<Factor> IsohedralChecker::has_quarter_turn_tiling(const boundaryword& P, 
       int A_len = A.second - A.first + 1 + n * (A.second < A.first);
       // One empty 90-drome factor
       if (A_len + C_len == n) {
-        return {C, A};
+        return true;
       }
       // No empty 90-drome factors
       for (auto& B: ninety_factor_starts[(A.second+1)%n]) {
         int B_len = B.second - B.first + 1 + n * (B.second < B.first);
         if (A_len + B_len + C_len == n) {
-          return {C, A, B};
+          return true;
         }
       }
     }
@@ -381,14 +369,14 @@ vector<Factor> IsohedralChecker::has_quarter_turn_tiling(const boundaryword& P, 
     for (auto& B: ninety_factor_starts[(A.second + 1)%n]) {
       int AB_len = A.second - A.first + 1 + n * (A.second < A.first) + B.second - B.first + 1 + n * (B.second < B.first);
       if (AB_len == n) {
-        return {A, B};
+        return true;
       }
     }
   }
-  return {};
+  return false;
 }
 
-vector<Factor> IsohedralChecker::has_type_1_reflection_tiling(const boundaryword& P, const vector<Factor>& reflect_square_factors, const vector<pair<Factor, Factor>>& mirror_factor_pairs) {
+bool IsohedralChecker::has_type_1_reflection_tiling(const boundaryword& P, const vector<Factor>& reflect_square_factors, const vector<pair<Factor, Factor>>& mirror_factor_pairs) {
   int n = P.size();
   vector<set<Factor>> reflect_square_factor_starts(n);
   for (auto& f: reflect_square_factors){
@@ -400,7 +388,7 @@ vector<Factor> IsohedralChecker::has_type_1_reflection_tiling(const boundaryword
     Factor rem1 = {(A.second+1)%n, (A_hat.first-1+n)%n};
     Factor rem2 = {(A_hat.second+1)%n, (A.first-1+n)%n};
     if (reflect_square_factor_starts[rem1.first].find(rem1) != reflect_square_factor_starts[rem1.first].end() && reflect_square_factor_starts[rem2.first].find(rem2) != reflect_square_factor_starts[rem2.first].end()) {
-      return {A, rem1, A_hat, rem2};
+      return true;
     }
   }
   for (auto& f: reflect_square_factors) {
@@ -408,14 +396,14 @@ vector<Factor> IsohedralChecker::has_type_1_reflection_tiling(const boundaryword
     for (auto& of: reflect_square_factor_starts[(f.second+1)%n]) {
       int of_len = of.second - of.first + 1 + n * (of.second < of.first);
       if (f_len + of_len == n) {
-        return {f, of};
+        return true;
       }
     }
   }
-  return {};
+  return false;
 }
 
-vector<Factor> IsohedralChecker::has_type_2_reflection_tiling(const boundaryword& P, const vector<Factor>& mirror_factors) {
+bool IsohedralChecker::has_type_2_reflection_tiling(const boundaryword& P, const vector<Factor>& mirror_factors) {
   int n = P.size();
   for (auto& p: REFL) {
     int theta = p.first;
@@ -435,7 +423,7 @@ vector<Factor> IsohedralChecker::has_type_2_reflection_tiling(const boundaryword
         Factor rem2 = {(f1.second+1)%n, (cf1.first-1+n)%n};
         int rem2_len = rem2.second - rem2.first + 1 + n * (rem2.second < rem2.first);
         if (rem2_len == A_len) {
-          return {A, f1, rem2, cf1};
+          return true;
         }
         for (auto& p2: reflect_factor_tips[rem2]) {
           Factor f2 = p2.first;
@@ -443,7 +431,7 @@ vector<Factor> IsohedralChecker::has_type_2_reflection_tiling(const boundaryword
           Factor rem3 = {(f2.second+1)%n, (cf2.first-1+n)%n};
           int rem3_len = rem3.second - rem3.first + 1 + n * (rem3.second < rem3.first);
           if (rem3_len == A_len) {
-            return {A, f1, f2, rem3, cf2, cf1};
+            return true;
           }
         }
       }
@@ -457,16 +445,16 @@ vector<Factor> IsohedralChecker::has_type_2_reflection_tiling(const boundaryword
           Factor f2 = p2.first;
           Factor cf2 = p2.second;
           if ((f2.second+1)%n == cf2.first) {
-            return {f1, f2, cf2, cf1};
+            return true;
           }
         }
       }
     }
   }
-  return {};
+  return false;
 }
 
-vector<Factor> IsohedralChecker::has_type_1_half_turn_reflection_tiling(const boundaryword& P, const vector<pair<Factor, Factor>>& partial_mirror_factor_pairs) {
+bool IsohedralChecker::has_type_1_half_turn_reflection_tiling(const boundaryword& P, const vector<pair<Factor, Factor>>& partial_mirror_factor_pairs) {
   int n = P.size();
   // Factorization A B C A_hat D f_theta(D) is not symmetric so we need both orderings of each pair.
   vector<pair<Factor, Factor>> mirror_factor_pairs;
@@ -496,32 +484,25 @@ vector<Factor> IsohedralChecker::has_type_1_half_turn_reflection_tiling(const bo
     Factor A_hat = p.second;
     Factor dpi1 = {(A.second+1)%n, (A_hat.first-1+n)%n};
     Factor dpi2 = {(A_hat.second+1)%n, (A.first-1+n)%n};
-    vector<Factor> dp1 = is_double_palindrome(dpi1, palindrome_factor_starts, palindrome_factor_ends, n);
+    bool dp1 = is_double_palindrome(dpi1, palindrome_factor_starts, palindrome_factor_ends, n);
     // Other variant (dpi2 is the double palindrome) checked later by symmetry of A, A_hat
     vector<Factor>& starts = reflect_square_starts[dpi2.first];
-    if (!dp1.empty() && (find(starts.begin(), starts.end(), dpi2) != starts.end())) {
-      vector<Factor> result;
-      result.push_back(A);
-      result.insert(result.end(), dp1.begin(), dp1.end());
-      result.push_back(A_hat);
-      result.push_back(dpi2);
-      return result;
+    if (dp1 && (find(starts.begin(), starts.end(), dpi2) != starts.end())) {
+      return true;
     }
   }
   
   // Empty mirrors
   for (auto& dp1: reflect_square_factors) {
-    vector<Factor> dp2 = is_double_palindrome({(dp1.second+1)%n, (dp1.first-1+n)%n}, palindrome_factor_starts, palindrome_factor_ends, n);
-    if (!dp2.empty()) {
-      vector<Factor> result = {dp1};
-      result.insert(result.end(), dp2.begin(), dp2.end());
-      return result;
+    bool dp2 = is_double_palindrome({(dp1.second+1)%n, (dp1.first-1+n)%n}, palindrome_factor_starts, palindrome_factor_ends, n);
+    if (dp2) {
+      return true;
     }
   }
-  return {};
+  return false;
 }
 
-vector<Factor> IsohedralChecker::has_type_2_half_turn_reflection_tiling(const boundaryword& P, const vector<Factor>& palin_factors) {
+bool IsohedralChecker::has_type_2_half_turn_reflection_tiling(const boundaryword& P, const vector<Factor>& palin_factors) {
   int n = P.size();
   map<int, vector<pair<Factor, Factor>>> reflect_factor_pairs;
   for (auto& p: REFL) {
@@ -558,7 +539,7 @@ vector<Factor> IsohedralChecker::has_type_2_half_turn_reflection_tiling(const bo
       Factor dpi2 = {(cf1.second+1)%n, (f1.first-1+n)%n};
       // Empty D, refl(D)
       if ((find(palin_factors.begin(), palin_factors.end(), dpi1) != palin_factors.end()) && (find(palin_factors.begin(), palin_factors.end(), dpi2) != palin_factors.end())) {
-        return {f1, dpi1, cf1, dpi2};
+        return true;
       }
       // Non-empty D, refl(D)
       for (auto & pr: reflect_factor_tips[{dpi1.first, dpi2.second}]) {
@@ -584,11 +565,7 @@ vector<Factor> IsohedralChecker::has_type_2_half_turn_reflection_tiling(const bo
         }
 
         if (!rem1f.empty() && !rem2f.empty()) {
-          vector<Factor> result = {f1};
-          result.insert(result.end(), rem1f.begin(), rem1f.end());
-          result.push_back(cf1);
-          result.insert(result.end(), rem2f.begin(), rem2f.end());
-          return result;
+          return true;
         }
       }
       // Empty B, refl(B): D refl(D) A C with A, C, palindromes
@@ -597,30 +574,30 @@ vector<Factor> IsohedralChecker::has_type_2_half_turn_reflection_tiling(const bo
           Factor f2 = pr.first;
           Factor cf2 = pr.second;
           if ((f2.second+1)%n == cf2.first && (cf2.second+1)%n == f2.first) {
-            return {f2, cf2};
+            return true;
           }
           for (auto& p1: palin_factors) {
             if (p1.first != (cf2.second+1)%n) {
               continue;;
             }
             if ((p1.second+1)%n == f2.first) {
-              return {f2, cf2, p1};
+              return true;
             }
             for (auto& p2: palin_factors) {
               if (p2.first != (p1.second+1)%n || (p2.second+1)%n != f2.first) {
                 continue;
               }
-              return {f2, cf2, p1, p2};
+              return true;
             }
           }
         }
       }
     }
   }
-  return {};
+  return false;
 }
 
-vector<Factor> IsohedralChecker::has_case_7_tiling(const boundaryword& P, const vector<Factor>& onetwenty_factors) {
+bool IsohedralChecker::has_case_7_tiling(const boundaryword& P, const vector<Factor>& onetwenty_factors) {
   // A t_120(A) B t_120(B) C t_120(C)
   int n = P.size();
   vector<set<Factor>> factor_starts(n);
@@ -634,21 +611,21 @@ vector<Factor> IsohedralChecker::has_case_7_tiling(const boundaryword& P, const 
       int B_len = B.second - B.first + 1 + n * (B.second < B.first);
       // One empty 120-drome.
       if (A_len + B_len == n) {
-        return {A, B};
+        return true;
       }
       // No empty 120-drome factors.
       for (auto& C: factor_starts[(B.second+1)%n]) {
         int C_len = C.second - C.first + 1 + n * (C.second < C.first);
         if (A_len + B_len + C_len == n) {
-          return {A, B, C};
+          return true;
         }
       }
     }
   }
-  return {};
+  return false;
 }
 
-vector<Factor> IsohedralChecker::has_case_8a_tiling(const boundaryword& P, const vector<Factor>& palin_factors, const vector<Factor>& sixty_factors, const vector<Factor>& onetwenty_factors) {
+bool IsohedralChecker::has_case_8a_tiling(const boundaryword& P, const vector<Factor>& palin_factors, const vector<Factor>& sixty_factors, const vector<Factor>& onetwenty_factors) {
   // At_60(A) Bt_120(B) C where C is palindrome.
   int n = P.size();
   vector<vector<Factor>> sixty_factor_starts(n);
@@ -667,7 +644,7 @@ vector<Factor> IsohedralChecker::has_case_8a_tiling(const boundaryword& P, const
     for (auto& B: onetwenty_factor_starts[(C.second + 1)%n]) {
       int B_len = B.second - B.first + 1 + n * (B.second < B.first);
       if (B_len + C_len == n) {
-        return {B, C};
+        return true;
       }
     }
     // No empty 60-drome factor
@@ -675,13 +652,13 @@ vector<Factor> IsohedralChecker::has_case_8a_tiling(const boundaryword& P, const
       int A_len = A.second - A.first + 1 + n * (A.second < A.first);
       // Empty 120-drome factor.
       if (A_len + C_len == n) {
-        return {A, C};
+        return true;
       }
       // No empty 120-drome factor.
       for (auto& B: onetwenty_factor_starts[(A.second + 1)%n]) {
         int B_len = B.second - B.first + 1 + n * (B.second < B.first);
         if (A_len + B_len + C_len == n) {
-          return {A, B, C};
+          return true;
         }
       }
     }
@@ -692,14 +669,14 @@ vector<Factor> IsohedralChecker::has_case_8a_tiling(const boundaryword& P, const
     for (auto& B: sixty_factor_starts[(A.second + 1)%n]) {
       int B_len = B.second - B.first + 1 + n * (B.second < B.first);
       if (A_len + B_len == n) {
-        return {A, B};
+        return true;
       }
     }
   }
-  return {};
+  return false;
 }
 
-vector<Factor> IsohedralChecker::has_case_8b_tiling(const boundaryword& P, const vector<Factor>& palin_factors, const vector<Factor>& sixty_factors, const vector<Factor>& onetwenty_factors) {
+bool IsohedralChecker::has_case_8b_tiling(const boundaryword& P, const vector<Factor>& palin_factors, const vector<Factor>& sixty_factors, const vector<Factor>& onetwenty_factors) {
   // At_60(A) B Ct_120(C)
   int n = P.size();
   vector<vector<Factor>> sixty_factor_starts(n);
@@ -718,7 +695,7 @@ vector<Factor> IsohedralChecker::has_case_8b_tiling(const boundaryword& P, const
     for (auto& A: sixty_factor_starts[(B.second + 1)%n]) {
       int A_len = A.second - A.first + 1 + n * (A.second < A.first);
       if (A_len + B_len == n) {
-        return {A, B};
+        return true;
       }
     }
     // No empty 120-drome factor
@@ -726,13 +703,13 @@ vector<Factor> IsohedralChecker::has_case_8b_tiling(const boundaryword& P, const
       int C_len = C.second - C.first + 1 + n * (C.second < C.first);
       // Empty 60-drome factor.
       if (B_len + C_len == n) {
-        return {B, C};
+        return true;
       }
       // No empty 60-drome factor.
       for (auto& A: sixty_factor_starts[(C.second + 1)%n]) {
         int A_len = A.second - A.first + 1 + n * (A.second < A.first);
         if (A_len + B_len + C_len == n) {
-          return {A, B, C};
+          return true;
         }
       }
     }
@@ -743,11 +720,11 @@ vector<Factor> IsohedralChecker::has_case_8b_tiling(const boundaryword& P, const
     for (auto& A: sixty_factor_starts[(C.second + 1)%n]) {
       int A_len = A.second - A.first + 1 + n * (A.second < A.first);
       if (A_len + C_len == n) {
-        return {A, C};
+        return true;
       }
     }
   }
-  return {};
+  return false;
 
 }
 
@@ -755,42 +732,42 @@ vector<Factor> IsohedralChecker::has_case_8b_tiling(const boundaryword& P, const
 bool IsohedralChecker::has_isohedral_tiling(const boundaryword &P) {
   vector<pair<Factor, Factor>> mirror_factor_pairs = admissible_gapped_mirror_factor_pairs(P);
   vector<Factor> palin_factors = admissible_rotadrome_factors(P, 180);
-  if (!has_half_turn_tiling(P, mirror_factor_pairs, palin_factors).empty()) return true;
+  if (has_half_turn_tiling(P, mirror_factor_pairs, palin_factors)) return true;
 
   vector<Factor> mirror_factors = admissible_mirror_factors(P);
-  if (!has_translation_tiling(P, mirror_factors).empty()) return true;
+  if (has_translation_tiling(P, mirror_factors)) return true;
   
   vector<Factor> ninety_factors = admissible_rotadrome_factors(P, 90);
-  if (!has_quarter_turn_tiling(P, ninety_factors, palin_factors).empty()) {
+  if (has_quarter_turn_tiling(P, ninety_factors, palin_factors)) {
     return true;
   }
 
   vector<Factor> reflect_square_factors = admissible_reflect_square_factors(P);
-  if (!has_type_1_reflection_tiling(P, reflect_square_factors, mirror_factor_pairs).empty()) {
+  if (has_type_1_reflection_tiling(P, reflect_square_factors, mirror_factor_pairs)) {
     return true;
   }
-  if (!has_type_2_reflection_tiling(P, mirror_factors).empty()) {
+  if (has_type_2_reflection_tiling(P, mirror_factors)) {
     return true;
   }
 
   vector<pair<Factor, Factor>> partial_mirror_factor_pairs = admissible_gapped_mirror_factor_pairs(P);
-  if (!has_type_1_half_turn_reflection_tiling(P, partial_mirror_factor_pairs).empty()) {
+  if (has_type_1_half_turn_reflection_tiling(P, partial_mirror_factor_pairs)) {
     return true;
   }
-  if (!has_type_2_half_turn_reflection_tiling(P, palin_factors).empty()) {
+  if (has_type_2_half_turn_reflection_tiling(P, palin_factors)) {
     return true;
   }
 
   vector<Factor> onetwenty_factors = admissible_rotation_factors(P, 120);
-  if (!has_case_7_tiling(P, onetwenty_factors).empty()) {
+  if (has_case_7_tiling(P, onetwenty_factors)) {
     return true;
   }
 
   vector<Factor> sixty_factors = admissible_rotation_factors(P, 60);
-  if (!has_case_8a_tiling(P, palin_factors, sixty_factors, onetwenty_factors).empty()) {
+  if (has_case_8a_tiling(P, palin_factors, sixty_factors, onetwenty_factors)) {
     return true;
   }
-  if (!has_case_8b_tiling(P, palin_factors, sixty_factors, onetwenty_factors).empty()) {
+  if (has_case_8b_tiling(P, palin_factors, sixty_factors, onetwenty_factors)) {
     return true;
   }
   return false;

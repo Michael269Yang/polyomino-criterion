@@ -15,10 +15,13 @@
 #include <vector>
 
 // TODO: Put this stuff in a namespace.
+//
+
+constexpr int MAX_BOUNDARY_SIZE = 50;
 
 using Factor = std::pair<int, int>;
 
-std::vector<Factor> is_double_palindrome(const Factor& F, const std::vector<std::vector<Factor>>& palindrome_factor_starts, const std::vector<std::vector<Factor>>& palindrome_factor_ends, int n);
+bool is_double_palindrome(const Factor& F, const std::vector<std::vector<Factor>>& palindrome_factor_starts, const std::vector<std::vector<Factor>>& palindrome_factor_ends, int n);
 
 
 struct IsohedralChecker {
@@ -71,26 +74,25 @@ std::vector<Factor> admissible_reflect_square_factors(const boundaryword& P);
 
 std::vector<std::pair<Factor, Factor>> admissible_gapped_reflect_square_factor_pairs(const boundaryword& P, int theta);
 
-std::vector<Factor> has_translation_tiling(const boundaryword& P, const std::vector<Factor>& mirror_factors);
+bool has_translation_tiling(const boundaryword& P, const std::vector<Factor>& mirror_factors);
 
-std::vector<Factor> has_half_turn_tiling(const boundaryword& P, const std::vector<std::pair<Factor, Factor>>& mirror_factor_pairs, const std::vector<Factor>& palin_factors);
+bool has_half_turn_tiling(const boundaryword& P, const std::vector<std::pair<Factor, Factor>>& mirror_factor_pairs, const std::vector<Factor>& palin_factors);
 
-std::vector<Factor> has_quarter_turn_tiling(const boundaryword& P, const std::vector<Factor>& ninety_factors, const std::vector<Factor>& palin_factors);
+bool has_quarter_turn_tiling(const boundaryword& P, const std::vector<Factor>& ninety_factors, const std::vector<Factor>& palin_factors);
 
-std::vector<Factor> has_type_1_reflection_tiling(const boundaryword& P, const std::vector<Factor>& reflect_square_factors, const std::vector<std::pair<Factor, Factor>>& mirror_factor_pairs);
+bool has_type_1_reflection_tiling(const boundaryword& P, const std::vector<Factor>& reflect_square_factors, const std::vector<std::pair<Factor, Factor>>& mirror_factor_pairs);
 
-std::vector<Factor> has_type_2_reflection_tiling(const boundaryword& P, const std::vector<Factor>& mirror_factors);
+bool has_type_2_reflection_tiling(const boundaryword& P, const std::vector<Factor>& mirror_factors);
 
-std::vector<Factor> has_type_1_half_turn_reflection_tiling(const boundaryword& P, const std::vector<std::pair<Factor, Factor>>& partial_mirror_factor_pairs);
+bool has_type_1_half_turn_reflection_tiling(const boundaryword& P, const std::vector<std::pair<Factor, Factor>>& partial_mirror_factor_pairs);
 
-std::vector<Factor> has_type_2_half_turn_reflection_tiling(const boundaryword& P, const std::vector<Factor>& palin_factors);
+bool has_type_2_half_turn_reflection_tiling(const boundaryword& P, const std::vector<Factor>& palin_factors);
 
-std::vector<Factor> has_case_7_tiling(const boundaryword& P, const std::vector<Factor>& onetwenty_factors);
+bool has_case_7_tiling(const boundaryword& P, const std::vector<Factor>& onetwenty_factors);
 
-std::vector<Factor> has_case_8a_tiling(const boundaryword& P, const std::vector<Factor>& palin_factors, const std::vector<Factor>& sixty_factors, const std::vector<Factor>& onetwenty_factors);
+bool has_case_8a_tiling(const boundaryword& P, const std::vector<Factor>& palin_factors, const std::vector<Factor>& sixty_factors, const std::vector<Factor>& onetwenty_factors);
 
-std::vector<Factor> has_case_8b_tiling(const boundaryword& P, const std::vector<Factor>& palin_factors, const std::vector<Factor>& sixty_factors, const std::vector<Factor>& onetwenty_factors);
-
+bool has_case_8b_tiling(const boundaryword& P, const std::vector<Factor>& palin_factors, const std::vector<Factor>& sixty_factors, const std::vector<Factor>& onetwenty_factors);
 
 bool has_isohedral_tiling(const boundaryword& P);
 
