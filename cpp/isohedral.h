@@ -71,25 +71,25 @@ std::vector<Factor> admissible_reflect_square_factors(const boundaryword& P);
 
 std::vector<std::pair<Factor, Factor>> admissible_gapped_reflect_square_factor_pairs(const boundaryword& P, int theta);
 
-std::vector<Factor> has_translation_tiling(const boundaryword& P);
+std::vector<Factor> has_translation_tiling(const boundaryword& P, const std::vector<Factor>& mirror_factors);
 
-std::vector<Factor> has_half_turn_tiling(const boundaryword& P);
+std::vector<Factor> has_half_turn_tiling(const boundaryword& P, const std::vector<std::pair<Factor, Factor>>& mirror_factor_pairs, const std::vector<Factor>& palin_factors);
 
-std::vector<Factor> has_quarter_turn_tiling(const boundaryword& P);
+std::vector<Factor> has_quarter_turn_tiling(const boundaryword& P, const std::vector<Factor>& ninety_factors, const std::vector<Factor>& palin_factors);
 
-std::vector<Factor> has_type_1_reflection_tiling(const boundaryword& P);
+std::vector<Factor> has_type_1_reflection_tiling(const boundaryword& P, const std::vector<Factor>& reflect_square_factors, const std::vector<std::pair<Factor, Factor>>& mirror_factor_pairs);
 
-std::vector<Factor> has_type_2_reflection_tiling(const boundaryword& P);
+std::vector<Factor> has_type_2_reflection_tiling(const boundaryword& P, const std::vector<Factor>& mirror_factors);
 
-std::vector<Factor> has_type_1_half_turn_reflection_tiling(const boundaryword& P);
+std::vector<Factor> has_type_1_half_turn_reflection_tiling(const boundaryword& P, const std::vector<std::pair<Factor, Factor>>& partial_mirror_factor_pairs);
 
-std::vector<Factor> has_type_2_half_turn_reflection_tiling(const boundaryword& P);
+std::vector<Factor> has_type_2_half_turn_reflection_tiling(const boundaryword& P, const std::vector<Factor>& palin_factors);
 
-std::vector<Factor> has_case_7_tiling(const boundaryword& P);
+std::vector<Factor> has_case_7_tiling(const boundaryword& P, const std::vector<Factor>& onetwenty_factors);
 
-std::vector<Factor> has_case_8a_tiling(const boundaryword& P);
+std::vector<Factor> has_case_8a_tiling(const boundaryword& P, const std::vector<Factor>& palin_factors, const std::vector<Factor>& sixty_factors, const std::vector<Factor>& onetwenty_factors);
 
-std::vector<Factor> has_case_8b_tiling(const boundaryword& P);
+std::vector<Factor> has_case_8b_tiling(const boundaryword& P, const std::vector<Factor>& palin_factors, const std::vector<Factor>& sixty_factors, const std::vector<Factor>& onetwenty_factors);
 
 
 bool has_isohedral_tiling(const boundaryword& P);

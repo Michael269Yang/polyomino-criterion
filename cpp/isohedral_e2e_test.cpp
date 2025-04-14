@@ -53,13 +53,6 @@ int main(int argc, char **argv) {
     }
 
     int num_isohedral = 0;
-    int num_trans = 0;
-    int num_half_turn = 0;
-    int num_quart_turn = 0;
-    int num_refl_1 = 0;
-    int num_refl_2 = 0;
-    int num_turn_refl_1 = 0;
-    int num_turn_refl_2 = 0;
     std::string line;
     std::vector<boundaryword> boundary_words;
     while (std::getline(inputFile, line)) {
