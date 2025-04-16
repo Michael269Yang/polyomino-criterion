@@ -22,12 +22,13 @@ constexpr int MAX_BND = 50;
 
 using Factor = std::pair<int, int>;
 
-template <size_t N>
-struct FactorArray {
-  std::array<Factor, N> data;
+
+template <typename T, size_t N>
+struct PartialArray {
+  std::array<T, N> data;
   size_t filled_count;
 
-  Factor& operator[](size_t index) {
+  T& operator[](size_t index) {
     return data[index];
   }
 
@@ -39,6 +40,14 @@ struct FactorArray {
     return data.cbegin() + filled_count;
   }
 };
+
+template <size_t N>
+using FactorArray = PartialArray<Factor, N>;
+
+using FactorPair = std::pair<Factor, Factor>;
+
+template <size_t N>
+using FactorPairArray = PartialArray<FactorPair, N>;
 
 bool is_double_palindrome(const Factor& F, const std::vector<std::vector<Factor>>& palindrome_factor_starts, const std::vector<std::vector<Factor>>& palindrome_factor_ends, int n);
 
@@ -83,25 +92,25 @@ boundaryword inv_comp(const boundaryword& S);
 
 FactorArray<2*MAX_BND> admissible_mirror_factors(const boundaryword& P);
 
-std::vector<std::pair<Factor, Factor>> admissible_gapped_mirror_factor_pairs(const boundaryword& P);
+FactorPairArray<MAX_BND*MAX_BND> admissible_gapped_mirror_factor_pairs(const boundaryword& P);
 
 FactorArray<2*MAX_BND> admissible_rotadrome_factors(const boundaryword& P, int theta);
 
-std::vector<Factor> admissible_reflect_square_factors(const boundaryword& P);
+FactorArray<MAX_BND*MAX_BND> admissible_reflect_square_factors(const boundaryword& P);
 
 std::vector<std::pair<Factor, Factor>> admissible_gapped_reflect_square_factor_pairs(const boundaryword& P, int theta);
 
 bool has_translation_tiling(const boundaryword& P, const FactorArray<2*MAX_BND>& mirror_factors);
 
-bool has_half_turn_tiling(const boundaryword& P, const std::vector<std::pair<Factor, Factor>>& mirror_factor_pairs, const FactorArray<2*MAX_BND>& palin_factors);
+bool has_half_turn_tiling(const boundaryword& P, const FactorPairArray<MAX_BND*MAX_BND>& mirror_factor_pairs, const FactorArray<2*MAX_BND>& palin_factors);
 
 bool has_quarter_turn_tiling(const boundaryword& P, const FactorArray<2*MAX_BND>& ninety_factors, const FactorArray<2*MAX_BND>& palin_factors);
 
-bool has_type_1_reflection_tiling(const boundaryword& P, const std::vector<Factor>& reflect_square_factors, const std::vector<std::pair<Factor, Factor>>& mirror_factor_pairs);
+bool has_type_1_reflection_tiling(const boundaryword& P, const FactorArray<MAX_BND*MAX_BND>& reflect_square_factors, const FactorPairArray<MAX_BND*MAX_BND>& mirror_factor_pairs);
 
 bool has_type_2_reflection_tiling(const boundaryword& P, const FactorArray<2*MAX_BND>& mirror_factors);
 
-bool has_type_1_half_turn_reflection_tiling(const boundaryword& P, const std::vector<std::pair<Factor, Factor>>& partial_mirror_factor_pairs, const FactorArray<2*MAX_BND>& palin_factors, const std::vector<Factor>& reflect_square_factors);
+bool has_type_1_half_turn_reflection_tiling(const boundaryword& P, const FactorPairArray<MAX_BND*MAX_BND>& partial_mirror_factor_pairs, const FactorArray<2*MAX_BND>& palin_factors, const FactorArray<MAX_BND*MAX_BND>& reflect_square_factors);
 
 bool has_type_2_half_turn_reflection_tiling(const boundaryword& P, const FactorArray<2*MAX_BND>& palin_factors);
 

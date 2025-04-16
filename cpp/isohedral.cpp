@@ -110,9 +110,10 @@ FactorArray<2*MAX_BND> IsohedralChecker::admissible_mirror_factors(const boundar
   return factors;
 }
 
-vector<pair<Factor, Factor>> IsohedralChecker::admissible_gapped_mirror_factor_pairs(const boundaryword& P) {
+FactorPairArray<MAX_BND*MAX_BND> IsohedralChecker::admissible_gapped_mirror_factor_pairs(const boundaryword& P) {
   int n = P.size();
-  vector<pair<Factor, Factor>> factor_pairs;
+  FactorPairArray<MAX_BND*MAX_BND> factor_pairs;
+  size_t factor_idx = 0;
   // Compute admissible mirror factors starting between letter pairs
   for (int i = 0; i < n; ++i) {
     for (int j = i + 1; j < n; ++j) {
@@ -120,7 +121,7 @@ vector<pair<Factor, Factor>> IsohedralChecker::admissible_gapped_mirror_factor_p
       int r = longest_match(slice(P, i) + P, inv_comp(P + slice(P, 0, j)), (j - i) / 2);
 
       if (l == r && r > 0) {
-        factor_pairs.push_back({make_pair((i-l+n)%n, (i-1+r+n)%n), make_pair((j-l+n)%n, (j-1+r+n)%n)});
+        factor_pairs[factor_idx++] = {make_pair((i-l+n)%n, (i-1+r+n)%n), make_pair((j-l+n)%n, (j-1+r+n)%n)};
       }
     }
   }
@@ -132,11 +133,12 @@ vector<pair<Factor, Factor>> IsohedralChecker::admissible_gapped_mirror_factor_p
         int l = longest_match(inv_comp(P + slice(P, 0, i)), slice(P, (j + 1) % n) + P, (i + n - j - 1)/2);
         int r = longest_match(slice(P, (i+1)%n) + P, inv_comp(P + slice(P, 0, j)), (j-i-1)/2);
         if (l == r) {
-          factor_pairs.push_back({make_pair((i-l+n)%n, (i+r)%n), make_pair((j-l+n)%n, (j+r)%n)});
+          factor_pairs[factor_idx++] = {make_pair((i-l+n)%n, (i+r)%n), make_pair((j-l+n)%n, (j+r)%n)};
         }
       }
     }
   }
+  factor_pairs.filled_count = factor_idx;
   return factor_pairs;
 }
 
@@ -211,10 +213,11 @@ FactorArray<2*MAX_BND> IsohedralChecker::admissible_rotadrome_factors(const boun
   return factors;
 }
 
-vector<Factor> IsohedralChecker::admissible_reflect_square_factors(const boundaryword& P) {
+FactorArray<MAX_BND*MAX_BND> IsohedralChecker::admissible_reflect_square_factors(const boundaryword& P) {
   int n = P.size();
 
-  set<Factor> factors;
+  FactorArray<MAX_BND*MAX_BND> factors;
+  size_t factor_idx = 0;
   for (int i = 0; i < n; ++i) {
     for (int j = 0; j < n; ++j) {
       if (j == i) {
@@ -223,12 +226,13 @@ vector<Factor> IsohedralChecker::admissible_reflect_square_factors(const boundar
       for (auto &p: REFL) {
         int theta = p.first;
         if (is_reflect_square_factor(P, i, j, theta)) {
-          factors.insert({i, j});
+          factors[factor_idx++] = {i, j};
         }
       }
     }
   }
-  return vector<Factor>(factors.begin(), factors.end());
+  factors.filled_count = factor_idx;
+  return factors;
 }
 
 vector<pair<Factor, Factor>> IsohedralChecker::admissible_gapped_reflect_square_factor_pairs(const boundaryword& P, int theta) {
@@ -282,7 +286,7 @@ bool IsohedralChecker::has_translation_tiling(const boundaryword& P, const Facto
   return false;
 }
 
-bool IsohedralChecker::has_half_turn_tiling(const boundaryword& P, const vector<pair<Factor, Factor>>& mirror_factor_pairs, const FactorArray<2*MAX_BND>& palin_factors) {
+bool IsohedralChecker::has_half_turn_tiling(const boundaryword& P, const FactorPairArray<MAX_BND*MAX_BND>& mirror_factor_pairs, const FactorArray<2*MAX_BND>& palin_factors) {
   int n = P.size();
   vector<vector<Factor>> palindrome_factor_starts(n);
   vector<vector<Factor>> palindrome_factor_ends(n);
@@ -358,7 +362,7 @@ bool IsohedralChecker::has_quarter_turn_tiling(const boundaryword& P, const Fact
   return false;
 }
 
-bool IsohedralChecker::has_type_1_reflection_tiling(const boundaryword& P, const vector<Factor>& reflect_square_factors, const vector<pair<Factor, Factor>>& mirror_factor_pairs) {
+bool IsohedralChecker::has_type_1_reflection_tiling(const boundaryword& P, const FactorArray<MAX_BND*MAX_BND>& reflect_square_factors, const FactorPairArray<MAX_BND*MAX_BND>& mirror_factor_pairs) {
   int n = P.size();
   vector<set<Factor>> reflect_square_factor_starts(n);
   for (auto& f: reflect_square_factors){
@@ -436,11 +440,11 @@ bool IsohedralChecker::has_type_2_reflection_tiling(const boundaryword& P, const
   return false;
 }
 
-bool IsohedralChecker::has_type_1_half_turn_reflection_tiling(const boundaryword& P, const vector<pair<Factor, Factor>>& partial_mirror_factor_pairs, const FactorArray<2*MAX_BND>& palin_factors, const vector<Factor>& reflect_square_factors) {
+bool IsohedralChecker::has_type_1_half_turn_reflection_tiling(const boundaryword& P, const FactorPairArray<MAX_BND*MAX_BND>& partial_mirror_factor_pairs, const FactorArray<2*MAX_BND>& palin_factors, const FactorArray<MAX_BND*MAX_BND>& reflect_square_factors) {
   int n = P.size();
   // Factorization A B C A_hat D f_theta(D) is not symmetric so we need both orderings of each pair.
   vector<pair<Factor, Factor>> mirror_factor_pairs;
-  mirror_factor_pairs.reserve(2 * partial_mirror_factor_pairs.size());
+  mirror_factor_pairs.reserve(2 * partial_mirror_factor_pairs.filled_count);
   for (auto& p: partial_mirror_factor_pairs) {
     mirror_factor_pairs.push_back(p);
     mirror_factor_pairs.push_back({p.second, p.first});
@@ -709,7 +713,7 @@ bool IsohedralChecker::has_case_8b_tiling(const boundaryword& P, const FactorArr
 
 
 bool IsohedralChecker::has_isohedral_tiling(const boundaryword &P) {
-  vector<pair<Factor, Factor>> mirror_factor_pairs = admissible_gapped_mirror_factor_pairs(P);
+  FactorPairArray<MAX_BND*MAX_BND> mirror_factor_pairs = admissible_gapped_mirror_factor_pairs(P);
   FactorArray<2*MAX_BND> palin_factors = admissible_rotadrome_factors(P, 180);
   if (has_half_turn_tiling(P, mirror_factor_pairs, palin_factors)) return true;
 
@@ -721,7 +725,7 @@ bool IsohedralChecker::has_isohedral_tiling(const boundaryword &P) {
     return true;
   }
 
-  vector<Factor> reflect_square_factors = admissible_reflect_square_factors(P);
+  FactorArray<MAX_BND*MAX_BND> reflect_square_factors = admissible_reflect_square_factors(P);
   if (has_type_1_reflection_tiling(P, reflect_square_factors, mirror_factor_pairs)) {
     return true;
   }
@@ -729,8 +733,7 @@ bool IsohedralChecker::has_isohedral_tiling(const boundaryword &P) {
     return true;
   }
 
-  vector<pair<Factor, Factor>> partial_mirror_factor_pairs = admissible_gapped_mirror_factor_pairs(P);
-  if (has_type_1_half_turn_reflection_tiling(P, partial_mirror_factor_pairs, palin_factors, reflect_square_factors)) {
+  if (has_type_1_half_turn_reflection_tiling(P, mirror_factor_pairs, palin_factors, reflect_square_factors)) {
     return true;
   }
   if (has_type_2_half_turn_reflection_tiling(P, palin_factors)) {
