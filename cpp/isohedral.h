@@ -15,14 +15,12 @@
 #include <utility>
 #include <vector>
 
-// TODO: Put this stuff in a namespace.
-//
-
 constexpr int MAX_BND = 50;
 
 using Factor = std::pair<int, int>;
 
-
+// A wrapper around stl array that provides range based iteration
+// over only the filled elements.
 template <typename T, size_t N>
 struct PartialArray {
   std::array<T, N> data;
@@ -49,13 +47,23 @@ using FactorPair = std::pair<Factor, Factor>;
 template <size_t N>
 using FactorPairArray = PartialArray<FactorPair, N>;
 
+// Returns whether factor F = [start, end] (both inclusive) is a 
+// double palidrome. Assumes palindrome_factor_starts, palindrome_factor_ends
+// are precomputed with the start and ends of the maximal palindrome factors
+// in the boundary word.
 bool is_double_palindrome(const Factor& F, const std::vector<std::vector<Factor>>& palindrome_factor_starts, const std::vector<std::vector<Factor>>& palindrome_factor_ends, int n);
 
-
+// A struct which checks whether a boundary word corresponds to 
+// a shape that tiles the plane isohedrally.
+//
+// The default fields of the struct are for the polyomino grid.
+// Assumes equal angle between edges in the grid.
 struct IsohedralChecker {
 
+// The angle between edges of the grid.
 int minAngle = 90;
 
+// The complement of edges in the grid.
 std::map<std::pair<int, int>, std::pair<int, int>> COMPLEMENT = {
   {{0, 1}, {0, -1}},
   {{0, -1}, {0, 1}},
@@ -63,6 +71,7 @@ std::map<std::pair<int, int>, std::pair<int, int>> COMPLEMENT = {
   {{-1, 0}, {1, 0}}
 };
 
+// The result of rotating an edge counterclockwise.
 std::map<std::pair<int, int>, std::pair<int, int>> CCW = {
   {{0, 1}, {-1, 0}},
   {{1, 0}, {0, 1}},
@@ -77,6 +86,7 @@ std::map<std::pair<int, int>, std::pair<int, int>> CW = {
     {{0, -1}, {-1, 0}}
 };
 
+// The results of reflecting edges in the grid.
 std::map<int, std::map<std::pair<int, int>, std::pair<int, int>>> REFL = {
   {-45, {{{0, 1}, {-1, 0}}, {{1, 0}, {0, -1}}, {{0, -1}, {1, 0}}, {{-1, 0}, {0, 1}}}},
   {0, {{{0, 1}, {0, -1}}, {{1, 0}, {1, 0}}, {{0, -1}, {0, 1}}, {{-1, 0}, {-1, 0}}}},
@@ -84,10 +94,13 @@ std::map<int, std::map<std::pair<int, int>, std::pair<int, int>>> REFL = {
   {90, {{{0, 1}, {0, 1}}, {{1, 0}, {-1, 0}}, {{0, -1}, {0, -1}}, {{-1, 0}, {1, 0}}}},
 };
 
+// Rotates dir counterclockwise numIters times.
 std::pair<int, int> iteratedCcw(std::pair<int, int> dir, int numIters);
 
+// Returns if P[i, j] is of the form A refl(A).
 bool is_reflect_square_factor(const boundaryword& P, int i, int j, int theta);
 
+// Reverses S and takes the componentwise complement.
 boundaryword inv_comp(const boundaryword& S);
 
 FactorArray<2*MAX_BND> admissible_mirror_factors(const boundaryword& P);

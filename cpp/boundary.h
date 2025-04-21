@@ -14,8 +14,10 @@
 
 using boundaryword = std::vector<std::pair<int, int>>;
 
+// Returns concatenation of 2 boundary words.
 boundaryword operator+(const boundaryword& lhs,
                        const boundaryword& rhs);
+// Returns slice of 0-indexed boundary [start, end). Returns start to end of the boundary word if end=-1.
 boundaryword slice(const boundaryword& boundary, int start, int end=-1);
 
 template<typename coord>
@@ -51,7 +53,8 @@ edgeset<typename grid::coord_t> getUniqueTileEdges(const Shape<grid>& shape) {
   return ret;
 }
 
-// This code currently only works for the hex grid.
+// Given area based representation of a shape in the hex grid, returns
+// a clockwise boundary word starting at the bottom left point.
 template <typename coord>
 boundaryword getBoundaryWord(const Shape<HexGrid<coord>>& shape) {
   using edgemap_t = edgemap<coord>;
@@ -71,25 +74,22 @@ boundaryword getBoundaryWord(const Shape<HexGrid<coord>>& shape) {
   point_t cur = start;
 
   std::pair<int, int> NW = {-2, 1};
+  std::pair<int, int> N = {-1, 2};
 
   boundaryword boundary;
 
   // From the bottom left we can only go NW or U. Prefer NW.
-  point_t nw = start + point_t(-2, 1);
+  point_t nw = start + point_t(NW.first, NW.second);
   if (neighbours[start].find(nw) != neighbours[start].end()) {
     cur = nw;
     neighbours[nw].erase(start);
     boundary.push_back(NW);
   } else {
-    cur = start + point_t(-1, 2);
+    cur = start + point_t(N.first, N.second);
     neighbours[cur].erase(start);
-    boundary.push_back({-1, 2});
+    boundary.push_back(N);
   }
 
-  /*std::map<point_t, char> edgeToLetter = {
-    {point_t(-1, 2), 'U'}, {point_t(1, -2), 'D'}, {point_t(1, 1), 'R'},
-    {point_t(2, -1), 'r'}, {point_t(-2, 1), 'L'}, {point_t(-1, -1), 'l'}
-  };*/
   while (cur != start) {
     point_t next = *neighbours[cur].begin();
     point_t edgeDir = next - cur;
@@ -100,7 +100,8 @@ boundaryword getBoundaryWord(const Shape<HexGrid<coord>>& shape) {
   return boundary;
 }
 
-// This code currently only works for the kite grid.
+// Given area based representation of a shape in the kite grid, returns
+// a clockwise boundary word starting at the bottom left point.
 template <typename coord>
 boundaryword getBoundaryWord(const Shape<KiteGrid<coord>>& shape) {
   using edgemap_t = edgemap<coord>;
@@ -163,7 +164,8 @@ boundaryword getBoundaryWord(const Shape<KiteGrid<coord>>& shape) {
 
 
 
-// This code currently only works for the iamond grid.
+// Given area based representation of a shape in the iamond grid, returns
+// a clockwise boundary word starting at the bottom left point.
 template <typename coord>
 boundaryword getBoundaryWord(const Shape<IamondGrid<coord>>& shape) {
   using edgemap_t = edgemap<coord>;
@@ -210,6 +212,8 @@ boundaryword getBoundaryWord(const Shape<IamondGrid<coord>>& shape) {
 }
 
 
+// Given area based representation of a shape in the omino grid, returns
+// a clockwise boundary word starting at the bottom left point.
 template <typename coord>
 boundaryword getBoundaryWord(const Shape<OminoGrid<coord>>& shape) {
   using point_t = typename OminoGrid<coord>::point_t;
