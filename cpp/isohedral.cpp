@@ -142,44 +142,6 @@ FactorPairArray<MAX_BND*MAX_BND> IsohedralChecker::admissible_gapped_mirror_fact
   return factor_pairs;
 }
 
-/*string convertToStr(const boundaryword& P) {
-  pair<int, int> E = {3, 0};
-  pair<int, int> NE = {0, 3};
-  pair<int, int> NW = {-3, 3};
-  pair<int, int> W = {-3, 0};
-  pair<int, int> SW = {0, -3};
-  pair<int, int> SE = {3, -3};
-  map<pair<int, int>, char> theMap = {
-    {E, 'E'}, {NE, 'R'}, {NW, 'L'}, {W, 'W'}, {SW, 'l'}, {SE, 'r'}
-  };
-
-  string ret;
-  for (auto& p: P) {
-    ret += theMap[p];
-  }
-  return ret;
-}*/
-
-
-string convertToStr(const boundaryword& P) {
-  pair<int, int> U = {-1, 2};
-  pair<int, int> D = {1, -2};
-  pair<int, int> R = {1, 1};
-  pair<int, int> r = {2, -1};
-  pair<int, int> L = {-2, 1};
-  pair<int, int> l = {-1, -1};
-
-  map<pair<int, int>, char> theMap = {
-    {U, 'U'}, {D, 'D'}, {R, 'R'}, {r, 'r'}, {L, 'L'}, {l, 'l'}
-  };
-
-  string ret;
-  for (auto& p: P) {
-    ret += theMap[p];
-  }
-  return ret;
-}
-
 FactorArray<2*MAX_BND> IsohedralChecker::admissible_rotadrome_factors(const boundaryword& P, int theta) {
   int n = P.size();
   theta = 180 - theta;
@@ -258,6 +220,8 @@ vector<pair<Factor, Factor>> IsohedralChecker::admissible_gapped_reflect_square_
 }
 
 bool IsohedralChecker::has_translation_tiling(const boundaryword& P, const FactorArray<2*MAX_BND>& mirror_factors) {
+  // Looking for factorization A B C A_hat B_hat C_hat 
+  // where A_hat is inverse complement of A.
   int n = P.size();
   vector<set<Factor>> factor_starts(n);
   vector<set<Factor>> factor_ends(n);
@@ -273,6 +237,7 @@ bool IsohedralChecker::has_translation_tiling(const boundaryword& P, const Facto
         if (AB_len > n / 2) {
           continue;
         }
+        // C is empty.
         if (AB_len == n / 2) {
           return true;
         }
@@ -287,6 +252,8 @@ bool IsohedralChecker::has_translation_tiling(const boundaryword& P, const Facto
 }
 
 bool IsohedralChecker::has_half_turn_tiling(const boundaryword& P, const FactorPairArray<MAX_BND*MAX_BND>& mirror_factor_pairs, const FactorArray<2*MAX_BND>& palin_factors) {
+  // Looking for factorization A B C hat(A) D E
+  // where B, C, D, E are palindromes
   int n = P.size();
   vector<vector<Factor>> palindrome_factor_starts(n);
   vector<vector<Factor>> palindrome_factor_ends(n);
@@ -309,6 +276,7 @@ bool IsohedralChecker::has_half_turn_tiling(const boundaryword& P, const FactorP
     }
   }
 
+  // A is empty
   for (int i = 0; i < n; ++i) {
     for (int j = 0; j < n; ++j) {
       if (j == i) {
@@ -327,17 +295,20 @@ bool IsohedralChecker::has_half_turn_tiling(const boundaryword& P, const FactorP
 }
 
 bool IsohedralChecker::has_quarter_turn_tiling(const boundaryword& P, const FactorArray<2*MAX_BND>& ninety_factors, const FactorArray<2*MAX_BND>& palin_factors) {
+  // Looking for factorization A B C 
+  // where A is a palindrome and B,C are 90-dromes.
   int n = P.size();
   vector<vector<Factor>> ninety_factor_starts(n);
   for (auto& f: ninety_factors) {
     ninety_factor_starts[f.first].push_back(f);
   }
-  // Factorizations with non-empty palindrome factor
+
+  // Factorizations with non-empty A 
   for (auto& C: palin_factors) {
     int C_len = C.second - C.first + 1 + n * (C.second < C.first);
     for (auto& A: ninety_factor_starts[(C.second + 1)%n]) {
       int A_len = A.second - A.first + 1 + n * (A.second < A.first);
-      // One empty 90-drome factor
+      // B empty 
       if (A_len + C_len == n) {
         return true;
       }
@@ -350,7 +321,8 @@ bool IsohedralChecker::has_quarter_turn_tiling(const boundaryword& P, const Fact
       }
     }
   }
-  // Factorizations with empty palindrome factor
+
+  // Factorizations with empty A. 
   for (auto& A: ninety_factors) {
     for (auto& B: ninety_factor_starts[(A.second + 1)%n]) {
       int AB_len = A.second - A.first + 1 + n * (A.second < A.first) + B.second - B.first + 1 + n * (B.second < B.first);
@@ -363,11 +335,14 @@ bool IsohedralChecker::has_quarter_turn_tiling(const boundaryword& P, const Fact
 }
 
 bool IsohedralChecker::has_type_1_reflection_tiling(const boundaryword& P, const FactorArray<MAX_BND*MAX_BND>& reflect_square_factors, const FactorPairArray<MAX_BND*MAX_BND>& mirror_factor_pairs) {
+  // Looking for factorization A B f_theta(A) A_hat C f_phi(C)
+  // for some angles theta, phi
   int n = P.size();
   vector<set<Factor>> reflect_square_factor_starts(n);
   for (auto& f: reflect_square_factors){
     reflect_square_factor_starts[f.first].insert(f);
   }
+
   for (auto& p: mirror_factor_pairs) {
     Factor A = p.first;
     Factor A_hat = p.second;
@@ -377,6 +352,7 @@ bool IsohedralChecker::has_type_1_reflection_tiling(const boundaryword& P, const
       return true;
     }
   }
+
   for (auto& f: reflect_square_factors) {
     int f_len = f.second - f.first + 1 + n * (f.second < f.first);
     for (auto& of: reflect_square_factor_starts[(f.second+1)%n]) {
@@ -390,6 +366,7 @@ bool IsohedralChecker::has_type_1_reflection_tiling(const boundaryword& P, const
 }
 
 bool IsohedralChecker::has_type_2_reflection_tiling(const boundaryword& P, const FactorArray<2*MAX_BND>& mirror_factors) {
+  // Looking for factorization A B C A_hat f_theta(C) f_theta(B)
   int n = P.size();
   for (auto& p: REFL) {
     int theta = p.first;
@@ -441,8 +418,9 @@ bool IsohedralChecker::has_type_2_reflection_tiling(const boundaryword& P, const
 }
 
 bool IsohedralChecker::has_type_1_half_turn_reflection_tiling(const boundaryword& P, const FactorPairArray<MAX_BND*MAX_BND>& partial_mirror_factor_pairs, const FactorArray<2*MAX_BND>& palin_factors, const FactorArray<MAX_BND*MAX_BND>& reflect_square_factors) {
+  // Looking for factorization A B C A_Hat D f_theta(D)
   int n = P.size();
-  // Factorization A B C A_hat D f_theta(D) is not symmetric so we need both orderings of each pair.
+  // Factorization is not symmetric so we need both orderings of each pair.
   vector<pair<Factor, Factor>> mirror_factor_pairs;
   mirror_factor_pairs.reserve(2 * partial_mirror_factor_pairs.filled_count);
   for (auto& p: partial_mirror_factor_pairs) {
@@ -486,6 +464,8 @@ bool IsohedralChecker::has_type_1_half_turn_reflection_tiling(const boundaryword
 }
 
 bool IsohedralChecker::has_type_2_half_turn_reflection_tiling(const boundaryword& P, const FactorArray<2*MAX_BND>& palin_factors) {
+  // Looking for factorization A B C D f_theta(B) f_phi(D)
+  // where A, C are palindromes and theta - phi = +-90
   int n = P.size();
   map<int, vector<pair<Factor, Factor>>> reflect_factor_pairs;
   for (auto& p: REFL) {
@@ -581,7 +561,7 @@ bool IsohedralChecker::has_type_2_half_turn_reflection_tiling(const boundaryword
 }
 
 bool IsohedralChecker::has_case_7_tiling(const boundaryword& P, const FactorArray<2*MAX_BND>& onetwenty_factors) {
-  // A t_120(A) B t_120(B) C t_120(C)
+  // Looking for factorization A f_120(A) B f_120(B) C t_120(C)
   int n = P.size();
   vector<set<Factor>> factor_starts(n);
   for (auto& f: onetwenty_factors) {
@@ -609,7 +589,8 @@ bool IsohedralChecker::has_case_7_tiling(const boundaryword& P, const FactorArra
 }
 
 bool IsohedralChecker::has_case_8a_tiling(const boundaryword& P, const FactorArray<2*MAX_BND>& palin_factors, const FactorArray<2*MAX_BND>& sixty_factors, const FactorArray<2*MAX_BND>& onetwenty_factors) {
-  // At_60(A) Bt_120(B) C where C is palindrome.
+  // Looking for factorization A f_60(A) B f_120(B) C
+  // where C is palindrome.
   int n = P.size();
   vector<vector<Factor>> sixty_factor_starts(n);
   for (auto& f: sixty_factors) {
@@ -660,7 +641,8 @@ bool IsohedralChecker::has_case_8a_tiling(const boundaryword& P, const FactorArr
 }
 
 bool IsohedralChecker::has_case_8b_tiling(const boundaryword& P, const FactorArray<2*MAX_BND>& palin_factors, const FactorArray<2*MAX_BND>& sixty_factors, const FactorArray<2*MAX_BND>& onetwenty_factors) {
-  // At_60(A) B Ct_120(C)
+  // Looking for factorization A f_60(A) B C f_120(C)
+  // where B is a palindrome.
   int n = P.size();
   vector<vector<Factor>> sixty_factor_starts(n);
   for (auto& f: sixty_factors) {
