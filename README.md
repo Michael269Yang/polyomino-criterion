@@ -21,3 +21,12 @@ The `isohedral_e2e` tool uses variants of the Langerman Winslow algorithm to det
 
 As a typical example, `./isohedral_e2e polyominos.txt omino` will read all polyominos in polyominos.txt and report how many tile the plane isohedrally. 
 
+# References
+
+The algorithm for checking isohedrality is from the following paper 
+* Stefan Langerman, Andrew Winslow *A Quasilinear-Time Algorithm for Tiling the Plane Isohedrally with a Polyomino*. Available at https://arxiv.org/pdf/1507.02762
+
+Grid types used in this code are the same as in Craig S. Kaplan's repository for using a SAT solver to compute Heesch numbers. Available at https://github.com/isohedral/heesch-sat.
+
+Tables from Joseph Myers's website were used to verify generated results https://www.polyomino.org.uk/mathematics/polyform-tiling/.
+
